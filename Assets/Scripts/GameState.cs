@@ -129,7 +129,7 @@ public class GameState : MonoBehaviour
 
     private void SetRoundBackground()
     {
-        string bgName = _currentRound == 1 ? "bg_round1" : "bg_round2";
+        string bgName = _currentRound == 1 ? "bg_round1" : _currentRound == 2 ? "bg_round2" : "bg_round3";
         Sprite bgSprite = Resources.Load<Sprite>(bgName);
         if (bgSprite != null)
         {

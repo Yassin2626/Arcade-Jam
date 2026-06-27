@@ -86,8 +86,8 @@ public class GameState : MonoBehaviour
         sr.sortingOrder = 10;
         BoxCollider2D bc = _potionPrefab.GetComponent<BoxCollider2D>();
         bc.isTrigger = true;
-        bc.size = new Vector2(0.5f, 0.5f);
-        _potionPrefab.transform.localScale = Vector3.one * 0.5f;
+        bc.size = new Vector2(0.25f, 0.25f);
+        _potionPrefab.transform.localScale = Vector3.one * 0.25f;
         _potionPrefab.GetComponent<ShieldPickup>().shieldAmount = 50;
         _potionPrefab.SetActive(false);
     }
@@ -101,8 +101,8 @@ public class GameState : MonoBehaviour
         sr.sortingOrder = 10;
         BoxCollider2D bc = _healthPotionPrefab.GetComponent<BoxCollider2D>();
         bc.isTrigger = true;
-        bc.size = new Vector2(0.5f, 0.5f);
-        _healthPotionPrefab.transform.localScale = Vector3.one * 0.5f;
+        bc.size = new Vector2(0.25f, 0.25f);
+        _healthPotionPrefab.transform.localScale = Vector3.one * 0.25f;
         _healthPotionPrefab.GetComponent<HealthPickup>().healAmount = 25;
         _healthPotionPrefab.SetActive(false);
     }

@@ -25,7 +25,7 @@ public class GameState : MonoBehaviour
     public int playerTwoGunIndex = 0;
 
     private int[] _baseDamage = { 10, 10 };
-    private float[] _damageMultiplier = { 1f, 2f };
+    private float[] _damageMultiplier = { 1f, 1f };
 
     public string horizontalAxis = "Horizontal_";
     public string verticalAxis = "Vertical_";
@@ -104,6 +104,35 @@ public class GameState : MonoBehaviour
         CreatePotionPrefab();
         CreateHealthPotionPrefab();
         CreateBackground();
+        SetupGround();
+    }
+
+    private void SetupGround()
+    {
+        Sprite groundTex = Resources.Load<Sprite>("ground");
+        if (groundTex == null) return;
+
+        GameObject floor = GameObject.Find("Ground");
+        if (floor != null)
+        {
+            SpriteRenderer sr = floor.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = groundTex;
+                sr.color = Color.white;
+            }
+        }
+
+        string[] wallNames = { "Left Wall", "Right Wall", "Top Wall" };
+        foreach (string name in wallNames)
+        {
+            GameObject wall = GameObject.Find(name);
+            if (wall != null)
+            {
+                SpriteRenderer sr = wall.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.enabled = false;
+            }
+        }
     }
 
     private void CreatePotionPrefab()
@@ -378,8 +407,8 @@ public class GameState : MonoBehaviour
                     SetRoundBackground();
                     _readyView.SetInMatch();
                     ShowHealthBars();
-                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
-                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(12f, 17f);
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(15f, 25f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(18f, 30f);
                 }
                 break;
             }
@@ -392,6 +421,7 @@ public class GameState : MonoBehaviour
                     {
                         gameState = GameStateEnum.GameOver;
                         HideHealthBars();
+                        if (_bgmSource != null) _bgmSource.Stop();
                         if (_victorySound != null)
                             _audioSource.PlayOneShot(_victorySound);
                         _readyView.SetInGameOver(_playerOneRoundWins > _playerTwoRoundWins ? "1" : "2");
@@ -405,12 +435,12 @@ public class GameState : MonoBehaviour
                 if (Time.time >= _nextSpawnTime)
                 {
                     SpawnPotion();
-                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(15f, 25f);
                 }
                 if (Time.time >= _nextHealthSpawnTime)
                 {
                     SpawnHealthPotion();
-                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(18f, 30f);
                 }
                 break;
             }
@@ -421,8 +451,8 @@ public class GameState : MonoBehaviour
                 {
                     _roundOverText.gameObject.SetActive(false);
                     gameState = GameStateEnum.InMatch;
-                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(5f, 8f);
-                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(7f, 10f);
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(8f, 12f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
                 }
                 break;
             }

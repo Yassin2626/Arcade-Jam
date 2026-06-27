@@ -7,7 +7,7 @@ public class BulletController : MonoBehaviour {
 
     public float delayBeforeShrink = 2f;
     public float shrinkDuration = 1f;
-    public int speed = 5;
+    public int speed = 25;
 
     public string shooterId = "";
     public int damage = 10;

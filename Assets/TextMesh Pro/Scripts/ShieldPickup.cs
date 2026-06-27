@@ -16,8 +16,12 @@ public class ShieldPickup : MonoBehaviour
         PlayerActions player = collision.GetComponent<PlayerActions>();
         if (player != null && GameState.Instance != null)
         {
-            GameState.Instance.AddShield(player.playerCount, shieldAmount);
-            Destroy(gameObject);
+            int currentShield = player.playerCount == "1" ? GameState.Instance.playerOneShield : GameState.Instance.playerTwoShield;
+            if (currentShield < GameState.MaxShield)
+            {
+                GameState.Instance.AddShield(player.playerCount, shieldAmount);
+                Destroy(gameObject);
+            }
         }
     }
 }

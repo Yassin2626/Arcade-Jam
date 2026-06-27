@@ -3402,15 +3402,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2263526594299876703, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_Name
-      value: DeathGround
+      value: Ground
       objectReference: {fileID: 0}
     - target: {fileID: 2263526594299876703, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_TagString
-      value: Death
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 6695096346546838470, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_IsTrigger
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6977191587504418763, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_LocalScale.x
@@ -3458,15 +3458,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7312555494935299495, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_Color.b
-      value: 0.36320752
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7312555494935299495, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_Color.g
-      value: 0.36320752
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7312555494935299495, guid: 9fd780bb39da6654780b0aa3592392b7, type: 3}
       propertyPath: m_Color.r
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

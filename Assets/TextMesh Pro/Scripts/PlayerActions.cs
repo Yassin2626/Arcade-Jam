@@ -33,7 +33,9 @@ using UnityEngine.SceneManagement;
             _sickleSound = Resources.Load<AudioClip>("sickle_throw");
             _gunSound = Resources.Load<AudioClip>("gun_shoot");
             if (GetComponent<PlayerAnimator>() == null)
-            gameObject.AddComponent<PlayerAnimator>();
+                gameObject.AddComponent<PlayerAnimator>();
+            if (GetComponent<PlayerHand>() == null)
+                gameObject.AddComponent<PlayerHand>();
         if (GameState.Instance != null)
         {
             if (playerCount == "1")

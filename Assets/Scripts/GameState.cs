@@ -61,6 +61,12 @@ public class GameState : MonoBehaviour
     private float _nextSpawnTime = 0f;
     private float _nextHealthSpawnTime = 0f;
 
+    private int _currentRound = 1;
+    private int _playerOneRoundWins = 0;
+    private int _playerTwoRoundWins = 0;
+    private const int _roundsNeededToWin = 2;
+    private SpriteRenderer _backgroundRenderer;
+
     private void Start()
     {
         if (Instance != null && Instance != this)
@@ -75,6 +81,7 @@ public class GameState : MonoBehaviour
         CreateHealthBars();
         CreatePotionPrefab();
         CreateHealthPotionPrefab();
+        CreateBackground();
     }
 
     private void CreatePotionPrefab()
@@ -105,6 +112,35 @@ public class GameState : MonoBehaviour
         _healthPotionPrefab.transform.localScale = Vector3.one * 0.2f;
         _healthPotionPrefab.GetComponent<HealthPickup>().healAmount = 25;
         _healthPotionPrefab.SetActive(false);
+    }
+
+    private void CreateBackground()
+    {
+        GameObject bg = new GameObject("RoundBackground", typeof(SpriteRenderer));
+        _backgroundRenderer = bg.GetComponent<SpriteRenderer>();
+        _backgroundRenderer.sortingOrder = -100;
+        _backgroundRenderer.transform.position = new Vector3(0, 0, 10);
+    }
+
+    private void SetRoundBackground()
+    {
+        string bgName = _currentRound == 1 ? "bg_round1" : "bg_round2";
+        Sprite bgSprite = Resources.Load<Sprite>(bgName);
+        if (bgSprite != null) _backgroundRenderer.sprite = bgSprite;
+    }
+
+    private void StartNextRound()
+    {
+        _currentRound++;
+        playerOneHealth = MaxHealth;
+        playerTwoHealth = MaxHealth;
+        playerOneShield = 0;
+        playerTwoShield = 0;
+        foreach (ShieldPickup p in FindObjectsOfType<ShieldPickup>()) Destroy(p.gameObject);
+        foreach (HealthPickup p in FindObjectsOfType<HealthPickup>()) Destroy(p.gameObject);
+        _nextSpawnTime = Time.time + UnityEngine.Random.Range(5f, 8f);
+        _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(7f, 10f);
+        SetRoundBackground();
     }
 
     private void CreateHealthBars()
@@ -244,11 +280,15 @@ public class GameState : MonoBehaviour
         switch (gameState) {
             case GameStateEnum.GetReady: {
                 if (_playerOneReady && _playerTwoReady) {
+                    _currentRound = 1;
+                    _playerOneRoundWins = 0;
+                    _playerTwoRoundWins = 0;
                     playerOneHealth = MaxHealth;
                     playerTwoHealth = MaxHealth;
                     playerOneShield = 0;
                     playerTwoShield = 0;
                     gameState = GameStateEnum.InMatch;
+                    SetRoundBackground();
                     _readyView.SetInMatch();
                     ShowHealthBars();
                     _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
@@ -258,9 +298,19 @@ public class GameState : MonoBehaviour
             }
             case GameStateEnum.InMatch: {
                 if (playerOneHealth <= 0 || playerTwoHealth <= 0) {
-                    gameState = GameStateEnum.GameOver;
-                    HideHealthBars();
-                    _readyView.SetInGameOver(playerOneHealth <= 0 ? "2" : "1");
+                    string roundWinner = playerOneHealth <= 0 ? "2" : "1";
+                    if (roundWinner == "1") _playerOneRoundWins++;
+                    else _playerTwoRoundWins++;
+                    if (_playerOneRoundWins >= _roundsNeededToWin || _playerTwoRoundWins >= _roundsNeededToWin)
+                    {
+                        gameState = GameStateEnum.GameOver;
+                        HideHealthBars();
+                        _readyView.SetInGameOver(_playerOneRoundWins > _playerTwoRoundWins ? "1" : "2");
+                    }
+                    else
+                    {
+                        StartNextRound();
+                    }
                 }
                 UpdateHealthBarPosition(_healthBarP1, player1Transform, _healthFillP1, _lostHealthFillP1, _shieldFillP1, playerOneHealth, playerOneShield);
                 UpdateHealthBarPosition(_healthBarP2, player2Transform, _healthFillP2, _lostHealthFillP2, _shieldFillP2, playerTwoHealth, playerTwoShield);

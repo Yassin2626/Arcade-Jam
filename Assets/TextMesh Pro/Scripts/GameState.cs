@@ -104,35 +104,6 @@ public class GameState : MonoBehaviour
         CreatePotionPrefab();
         CreateHealthPotionPrefab();
         CreateBackground();
-        SetupGround();
-    }
-
-    private void SetupGround()
-    {
-        Sprite groundTex = Resources.Load<Sprite>("ground");
-        if (groundTex == null) return;
-
-        GameObject floor = GameObject.Find("Ground");
-        if (floor != null)
-        {
-            SpriteRenderer sr = floor.GetComponent<SpriteRenderer>();
-            if (sr != null)
-            {
-                sr.sprite = groundTex;
-                sr.color = Color.white;
-            }
-        }
-
-        string[] wallNames = { "Left Wall", "Right Wall", "Top Wall" };
-        foreach (string name in wallNames)
-        {
-            GameObject wall = GameObject.Find(name);
-            if (wall != null)
-            {
-                SpriteRenderer sr = wall.GetComponent<SpriteRenderer>();
-                if (sr != null) sr.enabled = false;
-            }
-        }
     }
 
     private void CreatePotionPrefab()

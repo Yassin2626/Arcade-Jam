@@ -168,10 +168,7 @@ using UnityEngine.SceneManagement;
         if (_rigidbody != null)
             _rigidbody.velocity = Vector2.zero;
         if (_playerWeapon != null)
-        {
-            _playerWeapon.direction = Vector2.right;
-            _playerWeapon.weapon.transform.position = (Vector2)transform.position + Vector2.right * _playerWeapon.aimDistance;
-        }
+            _playerWeapon.ResetDirection();
         _canShoot = true;
         currentTime = 0f;
     }

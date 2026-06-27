@@ -87,13 +87,5 @@ public class PlayerActions : MonoBehaviour {
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {
-        switch (collision.tag) {
-            case "Death": {
-                transform.position = _start;
-                _rigidbody.velocity = Vector2.zero;
-                GameState.Instance.TakeDamage(playerCount, 25);
-                break;
-            }
-        }
     }
 }

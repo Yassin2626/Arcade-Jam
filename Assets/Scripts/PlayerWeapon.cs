@@ -42,6 +42,13 @@ public class PlayerWeapon : MonoBehaviour {
                 break;   
             }
             // Aiming straight up
+            case 1 when vertical == 1:
+                {
+                    weapon.transform.position = positionTop.position;
+                    direction = Vector2.up;
+                    break;
+                }
+            // Aiming straight up
             case 0 when vertical == 1:{
                 weapon.transform.position = positionTop.position;
                 direction = Vector2.up;

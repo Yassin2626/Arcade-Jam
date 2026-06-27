@@ -7,23 +7,21 @@ public class PlayerWeapon : MonoBehaviour {
     private PlayerActions _playerActions;
     public Vector2 direction = Vector2.right;
     public float aimDistance = 0.75f;
-    private TextMeshPro _dirIndicator;
 
     private void Start()
     {
         _playerActions = GetComponent<PlayerActions>();
-
         SpriteRenderer sr = weapon.GetComponent<SpriteRenderer>();
         if (sr != null) sr.enabled = false;
 
         GameObject dirObj = new GameObject("DirIndicator", typeof(TextMeshPro));
         dirObj.transform.SetParent(weapon.transform, false);
         dirObj.transform.localPosition = Vector3.zero;
-        _dirIndicator = dirObj.GetComponent<TextMeshPro>();
-        _dirIndicator.fontSize = 3;
-        _dirIndicator.alignment = TextAlignmentOptions.Center;
-        _dirIndicator.color = Color.white;
-        _dirIndicator.text = ">";
+        TextMeshPro tmp = dirObj.GetComponent<TextMeshPro>();
+        tmp.fontSize = 3;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = Color.white;
+        tmp.text = ">";
     }
 
     private void Update() {
@@ -38,10 +36,11 @@ public class PlayerWeapon : MonoBehaviour {
             direction = inputDir.normalized;
             weapon.transform.position = (Vector2)transform.position + direction * aimDistance;
 
-            if (_dirIndicator != null)
+            TextMeshPro tmp = weapon.GetComponentInChildren<TextMeshPro>();
+            if (tmp != null)
             {
                 float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-                _dirIndicator.transform.rotation = Quaternion.Euler(0, 0, angle);
+                tmp.transform.rotation = Quaternion.Euler(0, 0, angle);
             }
         }
     }
@@ -50,7 +49,6 @@ public class PlayerWeapon : MonoBehaviour {
     {
         direction = Vector2.right;
         weapon.transform.position = (Vector2)transform.position + direction * aimDistance;
-        if (_dirIndicator != null)
-            _dirIndicator.transform.rotation = Quaternion.identity;
+        weapon.transform.rotation = Quaternion.identity;
     }
 }

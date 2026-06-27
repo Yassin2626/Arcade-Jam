@@ -18,7 +18,7 @@ public class PlayerHand : MonoBehaviour
         if (_handRight != null) _originalRight = _handRight.sprite;
         if (_handLeft != null) _originalLeft = _handLeft.sprite;
 
-        _gunHand = Resources.Load<Sprite>("hand_gun");
+        _gunHand = Resources.Load<Sprite>("gun_hand");
     }
 
     private void FindHands(Transform parent)

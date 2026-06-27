@@ -13,7 +13,7 @@ public class GameState : MonoBehaviour
     private bool _playerTwoReady = false;
 
     public const int MaxHealth = 100;
-    public const int MaxShield = 50;
+    public const int MaxShield = 150;
     public int playerOneHealth = MaxHealth;
     public int playerTwoHealth = MaxHealth;
     public int playerOneShield = 0;
@@ -71,6 +71,8 @@ public class GameState : MonoBehaviour
     private int _playerTwoRoundWins = 0;
     private const int _roundsNeededToWin = 2;
     private SpriteRenderer _backgroundRenderer;
+    private AudioSource _audioSource;
+    private AudioClip _victorySound;
 
     private void Start()
     {
@@ -83,6 +85,11 @@ public class GameState : MonoBehaviour
         gameState = GameStateEnum.GetReady;
         _readyView = gameObject.GetComponent<ReadyView>();
         _canvas = FindObjectOfType<Canvas>();
+        _audioSource = gameObject.GetComponent<AudioSource>();
+        if (_audioSource == null)
+            _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false;
+        _victorySound = Resources.Load<AudioClip>("victory");
         CreateOverlayCanvas();
         CreateHealthBars();
         CreatePotionPrefab();
@@ -230,20 +237,10 @@ public class GameState : MonoBehaviour
         bar.transform.SetParent(_overlayCanvas.transform, false);
         RectTransform rt = bar.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(420, 42);
-        if (isLeft)
-        {
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot = new Vector2(0f, 1f);
-            rt.anchoredPosition = new Vector2(20f, -20f);
-        }
-        else
-        {
-            rt.anchorMin = new Vector2(1f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(1f, 1f);
-            rt.anchoredPosition = new Vector2(-20f, -20f);
-        }
+        rt.anchorMin = new Vector2(0.5f, 0f);
+        rt.anchorMax = new Vector2(0.5f, 0f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = new Vector2(isLeft ? -240f : 240f, 30f);
 
         GameObject frame = new GameObject("Frame", typeof(RectTransform), typeof(Image));
         frame.transform.SetParent(bar.transform, false);
@@ -255,9 +252,7 @@ public class GameState : MonoBehaviour
         Image fi = frame.GetComponent<Image>();
         fi.sprite = GenerateRoundedRectSprite(426, 48, 6);
         fi.type = Image.Type.Sliced;
-        Color frameColor = Color.Lerp(healthColor, Color.white, 0.4f);
-        frameColor.a = 0.9f;
-        fi.color = frameColor;
+        fi.color = new Color(0.83f, 0.69f, 0.22f, 0.95f);
 
         GameObject inner = new GameObject("Inner", typeof(RectTransform), typeof(Image));
         inner.transform.SetParent(frame.transform, false);
@@ -266,7 +261,7 @@ public class GameState : MonoBehaviour
         ir.anchorMax = Vector2.one;
         ir.sizeDelta = new Vector2(-6, -6);
         ir.pivot = new Vector2(0.5f, 0.5f);
-        inner.GetComponent<Image>().color = new Color(0.06f, 0.04f, 0.04f, 0.95f);
+        inner.GetComponent<Image>().color = new Color(0.94f, 0.90f, 0.82f, 0.9f);
 
         GameObject maskHolder = new GameObject("Mask", typeof(RectTransform), typeof(Image));
         maskHolder.transform.SetParent(inner.transform, false);
@@ -293,7 +288,7 @@ public class GameState : MonoBehaviour
         lfr.anchorMax = Vector2.zero;
         lfr.sizeDelta = Vector2.zero;
         lfr.pivot = new Vector2(0f, 0.5f);
-        lfr.GetComponent<Image>().color = new Color(0.85f, 0.12f, 0.12f);
+        lfr.GetComponent<Image>().color = new Color(0.60f, 0.45f, 0.10f, 0.8f);
 
         GameObject shieldFill = new GameObject("ShieldFill", typeof(RectTransform), typeof(Image));
         shieldFill.transform.SetParent(maskHolder.transform, false);
@@ -379,6 +374,8 @@ public class GameState : MonoBehaviour
                     {
                         gameState = GameStateEnum.GameOver;
                         HideHealthBars();
+                        if (_victorySound != null)
+                            _audioSource.PlayOneShot(_victorySound);
                         _readyView.SetInGameOver(_playerOneRoundWins > _playerTwoRoundWins ? "1" : "2");
                     }
                     else
@@ -440,14 +437,15 @@ public class GameState : MonoBehaviour
     private void UpdateHealthBarFill(Image healthFill, Image lostHealthFill, Image shieldFill, int health, int shield)
     {
         if (healthFill == null) return;
-        float hp = Mathf.Clamp01((float)health / MaxHealth);
-        float sp = Mathf.Clamp01((float)shield / MaxShield);
-        healthFill.rectTransform.anchorMax = new Vector2(hp * 0.7f, 1f);
-        lostHealthFill.rectTransform.anchorMin = new Vector2(hp * 0.7f, 0f);
-        lostHealthFill.rectTransform.anchorMax = new Vector2(0.7f, 1f);
-        shieldFill.rectTransform.anchorMin = new Vector2(0.7f, 0f);
-        shieldFill.rectTransform.anchorMax = new Vector2(0.7f + sp * 0.3f, 1f);
+        float total = MaxHealth + MaxShield;
+        float healthEnd = Mathf.Clamp01(health / total);
+        float shieldEnd = Mathf.Clamp01((health + shield) / total);
+        healthFill.rectTransform.anchorMax = new Vector2(healthEnd, 1f);
+        shieldFill.rectTransform.anchorMin = new Vector2(healthEnd, 0f);
+        shieldFill.rectTransform.anchorMax = new Vector2(shieldEnd, 1f);
         shieldFill.gameObject.SetActive(shield > 0);
+        lostHealthFill.rectTransform.anchorMin = new Vector2(shieldEnd, 0f);
+        lostHealthFill.rectTransform.anchorMax = new Vector2(1f, 1f);
     }
 
     public void TakeDamage(string player, int amount) {

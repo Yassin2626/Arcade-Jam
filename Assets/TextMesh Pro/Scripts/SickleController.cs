@@ -15,6 +15,8 @@ public class SickleController : MonoBehaviour
     public int damage = 20;
     public string shooterId = "";
 
+    public LayerMask wallMask = 1 << 6;
+
     public void Init(PlayerActions owner, Vector2 dir, float yOffset)
     {
         _owner = owner;
@@ -41,6 +43,13 @@ public class SickleController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (Physics2D.OverlapCircle(transform.position, 0.1f, wallMask))
+        {
+            if (_owner != null) _owner.OnSickleReturned();
+            Destroy(gameObject);
+            return;
+        }
+
         if (!_returning)
         {
             _rb.velocity = _direction * speed;

@@ -2,28 +2,37 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class PlayerActions : MonoBehaviour {
-    public string playerCount = "1";
-    private Vector3 _start;
-    private Rigidbody2D _rigidbody;
-    private PlayerWeapon _playerWeapon;
+    public class PlayerActions : MonoBehaviour {
+        public string playerCount = "1";
+        private Vector3 _start;
+        private Rigidbody2D _rigidbody;
+        private PlayerWeapon _playerWeapon;
     private Sprite _bulletGunSprite;
+    private AudioSource _audioSource;
+    private AudioClip _sickleSound;
+    private AudioClip _gunSound;
 
-    public GameObject xObject;
-    public Color bulletColor;
-    public LayerMask layersToExclude;
-    public float spawnInterval = 2f;
-    public float currentTime = 0f;
-    private bool _canShoot = true;
-    private int _activeSickles;
+        public GameObject xObject;
+        public Color bulletColor;
+        public LayerMask layersToExclude;
+        public float spawnInterval = 2f;
+        public float currentTime = 0f;
+        private bool _canShoot = true;
+        private int _activeSickles;
 
-    private void Start()
-    {
-        _start = gameObject.transform.position;
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _playerWeapon = GetComponent<PlayerWeapon>();
-        _bulletGunSprite = Resources.Load<Sprite>("bullet_gun");
-        if (GetComponent<PlayerAnimator>() == null)
+        private void Start()
+        {
+            _start = gameObject.transform.position;
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _playerWeapon = GetComponent<PlayerWeapon>();
+            _bulletGunSprite = Resources.Load<Sprite>("bullet_gun");
+            _audioSource = gameObject.GetComponent<AudioSource>();
+            if (_audioSource == null)
+                _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.playOnAwake = false;
+            _sickleSound = Resources.Load<AudioClip>("sickle_throw");
+            _gunSound = Resources.Load<AudioClip>("gun_shoot");
+            if (GetComponent<PlayerAnimator>() == null)
             gameObject.AddComponent<PlayerAnimator>();
         if (GameState.Instance != null)
         {
@@ -51,6 +60,8 @@ public class PlayerActions : MonoBehaviour {
                     }
                     else
                     {
+                        if (_gunSound != null)
+                            _audioSource.PlayOneShot(_gunSound);
                         currentTime = spawnInterval;
                         _canShoot = false;
                         Transform spawnPoint = _playerWeapon.weapon.transform;
@@ -108,6 +119,8 @@ public class PlayerActions : MonoBehaviour {
 
     private void SpawnSickles()
     {
+        if (_sickleSound != null)
+            _audioSource.PlayOneShot(_sickleSound);
         _canShoot = false;
         _activeSickles = 2;
         Vector2 dir = _playerWeapon.direction;
@@ -157,8 +170,7 @@ public class PlayerActions : MonoBehaviour {
         if (_playerWeapon != null)
         {
             _playerWeapon.direction = Vector2.right;
-            if (_playerWeapon.positionRight != null)
-                _playerWeapon.weapon.transform.position = _playerWeapon.positionRight.position;
+            _playerWeapon.weapon.transform.position = (Vector2)transform.position + Vector2.right * _playerWeapon.aimDistance;
         }
         _canShoot = true;
         currentTime = 0f;

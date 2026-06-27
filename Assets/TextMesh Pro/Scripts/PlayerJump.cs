@@ -4,29 +4,32 @@ public class PlayerJump : MonoBehaviour
 {
     private Rigidbody2D _rigidbody2D;
     private PlayerActions _playerActions;
-    private BoxCollider2D _boxCollider;
+
+    public float capsuleHeight = 0.25f;
+    public float capsuleRadius = 0.08f;
+    public Transform feetCollider;
+    public LayerMask groundMask;
+
+    public bool IsGrounded { get; private set; }
 
     public float jumpForce = 10;
     public float fallForce = 2;
-    public float groundCheckDistance = 0.2f;
-    public LayerMask groundMask;
-
     private Vector2 _gravityVector;
 
     private void Start() {
         _gravityVector = new Vector2(0, Physics2D.gravity.y);
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _playerActions = GetComponent<PlayerActions>();
-        _boxCollider = GetComponent<BoxCollider2D>();
     }
 
    private void Update() {
        if (GameState.Instance.gameState != GameState.GameStateEnum.InMatch) return;
 
-       Vector2 checkOrigin = (Vector2)transform.position + _boxCollider.offset + Vector2.down * (_boxCollider.size.y * 0.5f);
-       bool grounded = Physics2D.OverlapCircle(checkOrigin, groundCheckDistance, groundMask);
+       IsGrounded = Physics2D.OverlapCapsule(feetCollider.position,
+           new Vector2(capsuleHeight, capsuleRadius), CapsuleDirection2D.Horizontal,
+           0, groundMask);
 
-       if (Input.GetButtonDown(GameState.Instance.jumpButton + _playerActions.playerCount) && grounded) {
+       if (Input.GetButtonDown(GameState.Instance.jumpButton + _playerActions.playerCount) && IsGrounded) {
            _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpForce);
        }
 

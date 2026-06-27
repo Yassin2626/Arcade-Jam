@@ -12,6 +12,8 @@ public class BulletController : MonoBehaviour {
     public string shooterId = "";
     public int damage = 10;
 
+    public LayerMask wallMask = 1 << 6;
+
     private void Start()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
@@ -42,6 +44,8 @@ public class BulletController : MonoBehaviour {
 
     private void Update() {
         _rigidbody2D.velocity = _direction * speed;
+        if (Physics2D.OverlapCircle(transform.position, 0.05f, wallMask))
+            Destroy(gameObject);
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {

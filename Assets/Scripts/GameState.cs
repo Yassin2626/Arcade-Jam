@@ -1,29 +1,28 @@
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameState : MonoBehaviour
 {
-    // Static singleton instance allowing global access to the GameState
     public static GameState Instance { get; private set; }
-    
-    // Reference to the UI script handling player ready statuses and health visuals
+
     private ReadyView _readyView;
-    
-    // Ready state tracking for both players during the preparation phase
+
     private bool _playerOneReady = false;
     private bool _playerTwoReady = false;
 
-    // Remaining health points for each player
-    public int playerOneHealth = 3;
-    public int playerTwoHealth = 3;
-    
-    // Player character and gun selection indices
+    public const int MaxHealth = 100;
+    public int playerOneHealth = MaxHealth;
+    public int playerTwoHealth = MaxHealth;
+
     public int playerOneCharacterIndex = 0;
     public int playerOneGunIndex = 0;
     public int playerTwoCharacterIndex = 0;
     public int playerTwoGunIndex = 0;
 
-    // Input axis and button string prefixes used to map multiplayer controls dynamically
+    private int[] _baseDamage = { 10, 10, 10 };
+    private float[] _damageMultiplier = { 1f, 1f, 2f };
+
     public string horizontalAxis = "Horizontal_";
     public string verticalAxis = "Vertical_";
     public string jumpButton = "Jump_";
@@ -33,90 +32,150 @@ public class GameState : MonoBehaviour
     public string actionRB = "Action_RB_";
     public string actionLB = "Action_LB_";
 
-    // Defines the possible operational states of the match flow
     public enum GameStateEnum {
         GetReady,
         InMatch,
         GameOver,
     }
-    
-    // Current active state of the game session
+
     public GameStateEnum gameState;
-    
-    
-    // Start is called before the first frame update
+
+    private Canvas _canvas;
+    private GameObject _healthBarP1;
+    private GameObject _healthBarP2;
+    private Image _healthFillP1;
+    private Image _healthFillP2;
+
+    public Transform player1Transform;
+    public Transform player2Transform;
+
     private void Start()
     {
-        // Enforce the Singleton pattern to prevent duplicate GameState instances
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
-        // Establish this object as the persistent global instance
         Instance = this;
-        
-        // Initialize the game loop into the pre-match ready phase
         gameState = GameStateEnum.GetReady;
-        
-        // Cache the ReadyView component responsible for user interface updates
         _readyView = gameObject.GetComponent<ReadyView>();
+        _canvas = FindObjectOfType<Canvas>();
+        CreateHealthBars();
     }
 
-    // Update is called once per frame
+    private void CreateHealthBars()
+    {
+        _healthBarP1 = CreateHealthBar("HealthBar_P1", -300f);
+        _healthBarP2 = CreateHealthBar("HealthBar_P2", 300f);
+        _healthFillP1 = _healthBarP1.transform.Find("Fill").GetComponent<Image>();
+        _healthFillP2 = _healthBarP2.transform.Find("Fill").GetComponent<Image>();
+        _healthBarP1.SetActive(false);
+        _healthBarP2.SetActive(false);
+    }
+
+    private GameObject CreateHealthBar(string name, float x)
+    {
+        GameObject container = new GameObject(name, typeof(RectTransform));
+        container.transform.SetParent(_canvas.transform, false);
+        RectTransform cr = container.GetComponent<RectTransform>();
+        cr.sizeDelta = new Vector2(120, 14);
+        cr.anchorMin = new Vector2(0.5f, 0.5f);
+        cr.anchorMax = new Vector2(0.5f, 0.5f);
+        cr.pivot = new Vector2(0.5f, 0.5f);
+
+        GameObject bg = new GameObject("BG", typeof(RectTransform), typeof(Image));
+        bg.transform.SetParent(container.transform, false);
+        RectTransform br = bg.GetComponent<RectTransform>();
+        br.anchorMin = Vector2.zero;
+        br.anchorMax = Vector2.one;
+        br.sizeDelta = Vector2.zero;
+        Image bi = bg.GetComponent<Image>();
+        bi.color = new Color(0.3f, 0.08f, 0.08f);
+
+        GameObject fill = new GameObject("Fill", typeof(RectTransform), typeof(Image));
+        fill.transform.SetParent(container.transform, false);
+        RectTransform fr = fill.GetComponent<RectTransform>();
+        fr.anchorMin = Vector2.zero;
+        fr.anchorMax = new Vector2(1f, 1f);
+        fr.sizeDelta = Vector2.zero;
+        fr.pivot = new Vector2(0f, 0.5f);
+        Image fi = fill.GetComponent<Image>();
+        fi.color = new Color(0.2f, 0.7f, 0.2f);
+
+        return container;
+    }
+
+    public int GetDamage(int gunIndex)
+    {
+        if (gunIndex < 0 || gunIndex >= _baseDamage.Length) return _baseDamage[0];
+        return Mathf.RoundToInt(_baseDamage[gunIndex] * _damageMultiplier[gunIndex]);
+    }
+
     private void Update()
     {
-        // Monitor core match transitions based on current game phases
         switch (gameState) {
-            
-            // Check if both players are flagged as ready to begin gameplay
             case GameStateEnum.GetReady: {
                 if (_playerOneReady && _playerTwoReady) {
-                    // Transition to active match state
+                    playerOneHealth = MaxHealth;
+                    playerTwoHealth = MaxHealth;
                     gameState = GameStateEnum.InMatch;
-                    
-                    // Notify the UI to hide lobby options and display game elements
                     _readyView.SetInMatch();
+                    ShowHealthBars();
                 }
                 break;
             }
-            
-            // Monitor player health values to determine match termination conditions
             case GameStateEnum.InMatch: {
                 if (playerOneHealth <= 0 || playerTwoHealth <= 0) {
-                    // Transition to end match state
                     gameState = GameStateEnum.GameOver;
-                    
-                    // Trigger game over screen, passing the winning player number ("1" or "2")
+                    HideHealthBars();
                     _readyView.SetInGameOver(playerOneHealth <= 0 ? "2" : "1");
                 }
+                UpdateHealthBarPosition(_healthBarP1, player1Transform, _healthFillP1, playerOneHealth);
+                UpdateHealthBarPosition(_healthBarP2, player2Transform, _healthFillP2, playerTwoHealth);
                 break;
             }
             case GameStateEnum.GameOver:
-            break; 
+            break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
 
-    // Deducts life from the specified player and updates corresponding UI components
-    public void TakeDamage(string player) {
+    private void ShowHealthBars()
+    {
+        if (_healthBarP1 != null) _healthBarP1.SetActive(true);
+        if (_healthBarP2 != null) _healthBarP2.SetActive(true);
+    }
+
+    private void HideHealthBars()
+    {
+        if (_healthBarP1 != null) _healthBarP1.SetActive(false);
+        if (_healthBarP2 != null) _healthBarP2.SetActive(false);
+    }
+
+    private void UpdateHealthBarPosition(GameObject bar, Transform player, Image fill, int health)
+    {
+        if (bar == null || player == null || fill == null) return;
+        Vector3 screenPos = Camera.main.WorldToScreenPoint(player.position + Vector3.up * 2.5f);
+        RectTransform rt = bar.GetComponent<RectTransform>();
+        rt.position = screenPos;
+        float pct = Mathf.Clamp01((float)health / MaxHealth);
+        fill.rectTransform.anchorMax = new Vector2(pct, 1f);
+    }
+
+    public void TakeDamage(string player, int amount) {
         switch (player) {
             case "1": {
-                playerOneHealth--;
-                _readyView.UpdatePlayerHealth(player, playerOneHealth);
+                playerOneHealth = Mathf.Max(0, playerOneHealth - amount);
                 break;
             }
             case "2": {
-                playerTwoHealth--;
-                _readyView.UpdatePlayerHealth(player, playerTwoHealth);
+                playerTwoHealth = Mathf.Max(0, playerTwoHealth - amount);
                 break;
             }
         }
     }
 
-    // Commits the ready status flag for a player and triggers the corresponding visual state
     public void SetReady(string player) {
         switch (player) {
             case "1": {

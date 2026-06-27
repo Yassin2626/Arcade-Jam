@@ -55,7 +55,9 @@ public class GameState : MonoBehaviour
     public Transform player2Transform;
 
     private GameObject _potionPrefab;
+    private GameObject _healthPotionPrefab;
     private float _nextSpawnTime = 0f;
+    private float _nextHealthSpawnTime = 0f;
 
     private void Start()
     {
@@ -70,6 +72,7 @@ public class GameState : MonoBehaviour
         _canvas = FindObjectOfType<Canvas>();
         CreateHealthBars();
         CreatePotionPrefab();
+        CreateHealthPotionPrefab();
     }
 
     private void CreatePotionPrefab()
@@ -85,6 +88,21 @@ public class GameState : MonoBehaviour
         _potionPrefab.transform.localScale = Vector3.one * 0.5f;
         _potionPrefab.GetComponent<ShieldPickup>().shieldAmount = 50;
         _potionPrefab.SetActive(false);
+    }
+
+    private void CreateHealthPotionPrefab()
+    {
+        _healthPotionPrefab = new GameObject("HealthPickup", typeof(SpriteRenderer), typeof(BoxCollider2D), typeof(HealthPickup));
+        Sprite potionSprite = Resources.Load<Sprite>("health_potion");
+        SpriteRenderer sr = _healthPotionPrefab.GetComponent<SpriteRenderer>();
+        if (potionSprite != null) sr.sprite = potionSprite;
+        sr.sortingOrder = 10;
+        BoxCollider2D bc = _healthPotionPrefab.GetComponent<BoxCollider2D>();
+        bc.isTrigger = true;
+        bc.size = new Vector2(0.5f, 0.5f);
+        _healthPotionPrefab.transform.localScale = Vector3.one * 0.5f;
+        _healthPotionPrefab.GetComponent<HealthPickup>().healAmount = 25;
+        _healthPotionPrefab.SetActive(false);
     }
 
     private void CreateHealthBars()
@@ -156,12 +174,30 @@ public class GameState : MonoBehaviour
         }
     }
 
+    public void HealPlayer(string player, int amount)
+    {
+        switch (player)
+        {
+            case "1": playerOneHealth = Mathf.Min(MaxHealth, playerOneHealth + amount); break;
+            case "2": playerTwoHealth = Mathf.Min(MaxHealth, playerTwoHealth + amount); break;
+        }
+    }
+
     private void SpawnPotion()
     {
         float x = UnityEngine.Random.Range(-7f, 7f);
         float y = UnityEngine.Random.Range(-3f, 3f);
         Vector3 pos = new Vector3(x, y, 0);
         GameObject potion = Instantiate(_potionPrefab, pos, Quaternion.identity);
+        potion.SetActive(true);
+    }
+
+    private void SpawnHealthPotion()
+    {
+        float x = UnityEngine.Random.Range(-7f, 7f);
+        float y = UnityEngine.Random.Range(-3f, 3f);
+        Vector3 pos = new Vector3(x, y, 0);
+        GameObject potion = Instantiate(_healthPotionPrefab, pos, Quaternion.identity);
         potion.SetActive(true);
     }
 
@@ -178,6 +214,7 @@ public class GameState : MonoBehaviour
                     _readyView.SetInMatch();
                     ShowHealthBars();
                     _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(12f, 17f);
                 }
                 break;
             }
@@ -193,6 +230,11 @@ public class GameState : MonoBehaviour
                 {
                     SpawnPotion();
                     _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                }
+                if (Time.time >= _nextHealthSpawnTime)
+                {
+                    SpawnHealthPotion();
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
                 }
                 break;
             }

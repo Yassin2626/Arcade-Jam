@@ -51,7 +51,7 @@ public class SelectionUI : MonoBehaviour
     {
         public int charIndex = 1;
         public int gunIndex = 2;
-        public int currentRow = 0;
+        public int currentRow = 1;
         public bool ready = false;
         public float lastH = 0f;
         public float lastV = 0f;

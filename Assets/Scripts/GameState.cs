@@ -101,8 +101,8 @@ public class GameState : MonoBehaviour
         sr.sortingOrder = 10;
         BoxCollider2D bc = _healthPotionPrefab.GetComponent<BoxCollider2D>();
         bc.isTrigger = true;
-        bc.size = new Vector2(0.25f, 0.25f);
-        _healthPotionPrefab.transform.localScale = Vector3.one * 0.25f;
+        bc.size = new Vector2(0.2f, 0.2f);
+        _healthPotionPrefab.transform.localScale = Vector3.one * 0.2f;
         _healthPotionPrefab.GetComponent<HealthPickup>().healAmount = 25;
         _healthPotionPrefab.SetActive(false);
     }

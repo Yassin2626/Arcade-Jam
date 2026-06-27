@@ -422,20 +422,6 @@ public class GameState : MonoBehaviour
         shieldFill.gameObject.SetActive(shield > 0);
     }
 
-    private void UpdateHealthBarPosition(GameObject bar, Transform player, Image healthFill, Image lostHealthFill, Image shieldFill, int health, int shield)
-    {
-        if (bar == null || player == null || healthFill == null) return;
-        bar.GetComponent<RectTransform>().position = Camera.main.WorldToScreenPoint(player.position + Vector3.up * 2.5f);
-        float hp = Mathf.Clamp01((float)health / MaxHealth);
-        float sp = Mathf.Clamp01((float)shield / MaxShield);
-        healthFill.rectTransform.anchorMax = new Vector2(hp * 0.7f, 1f);
-        lostHealthFill.rectTransform.anchorMin = new Vector2(hp * 0.7f, 0f);
-        lostHealthFill.rectTransform.anchorMax = new Vector2(0.7f, 1f);
-        shieldFill.rectTransform.anchorMin = new Vector2(0.7f, 0f);
-        shieldFill.rectTransform.anchorMax = new Vector2(0.7f + sp * 0.3f, 1f);
-        shieldFill.gameObject.SetActive(shield > 0);
-    }
-
     public void TakeDamage(string player, int amount) {
         switch (player) {
             case "1": {

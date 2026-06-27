@@ -230,64 +230,71 @@ public class GameState : MonoBehaviour
         bar.transform.SetParent(_overlayCanvas.transform, false);
         RectTransform rt = bar.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(420, 42);
-        rt.anchorMin = new Vector2(0.5f, 0f);
-        rt.anchorMax = new Vector2(0.5f, 0f);
-        rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = new Vector2(isLeft ? -240f : 240f, 50f);
+        if (isLeft)
+        {
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(20f, -20f);
+        }
+        else
+        {
+            rt.anchorMin = new Vector2(1f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 1f);
+            rt.anchoredPosition = new Vector2(-20f, -20f);
+        }
 
         GameObject frame = new GameObject("Frame", typeof(RectTransform), typeof(Image));
         frame.transform.SetParent(bar.transform, false);
         RectTransform fr = frame.GetComponent<RectTransform>();
         fr.anchorMin = Vector2.zero;
         fr.anchorMax = Vector2.one;
-        fr.sizeDelta = new Vector2(8, 8);
+        fr.sizeDelta = new Vector2(6, 6);
         fr.pivot = new Vector2(0.5f, 0.5f);
         Image fi = frame.GetComponent<Image>();
-        fi.sprite = GenerateRoundedRectSprite(428, 50, 6);
+        fi.sprite = GenerateRoundedRectSprite(426, 48, 6);
         fi.type = Image.Type.Sliced;
-        fi.color = new Color(0.83f, 0.69f, 0.22f, 0.8f);
+        fi.color = new Color(0.83f, 0.69f, 0.22f, 0.9f);
 
-        GameObject bg = new GameObject("Bg", typeof(RectTransform), typeof(Image));
-        bg.transform.SetParent(bar.transform, false);
-        RectTransform bgr = bg.GetComponent<RectTransform>();
-        bgr.anchorMin = Vector2.zero;
-        bgr.anchorMax = Vector2.one;
-        bgr.sizeDelta = new Vector2(-8, -8);
-        bgr.pivot = new Vector2(0.5f, 0.5f);
-        Image bgi = bg.AddComponent<Image>();
-        bgi.sprite = GenerateRoundedRectSprite(412, 34, 4);
-        bgi.type = Image.Type.Sliced;
-        bgi.color = new Color(0.06f, 0.04f, 0.04f, 0.95f);
+        GameObject inner = new GameObject("Inner", typeof(RectTransform), typeof(Image));
+        inner.transform.SetParent(frame.transform, false);
+        RectTransform ir = inner.GetComponent<RectTransform>();
+        ir.anchorMin = Vector2.zero;
+        ir.anchorMax = Vector2.one;
+        ir.sizeDelta = new Vector2(-6, -6);
+        ir.pivot = new Vector2(0.5f, 0.5f);
+        inner.GetComponent<Image>().color = new Color(0.06f, 0.04f, 0.04f, 0.95f);
 
-        GameObject clip = new GameObject("Clip", typeof(RectTransform), typeof(Image));
-        clip.transform.SetParent(bg.transform, false);
-        RectTransform cr = clip.GetComponent<RectTransform>();
-        cr.anchorMin = Vector2.zero;
-        cr.anchorMax = Vector2.one;
-        cr.sizeDelta = new Vector2(-4, -4);
-        cr.pivot = new Vector2(0.5f, 0.5f);
-        clip.AddComponent<Mask>();
+        GameObject maskHolder = new GameObject("Mask", typeof(RectTransform), typeof(Image));
+        maskHolder.transform.SetParent(inner.transform, false);
+        RectTransform mr = maskHolder.GetComponent<RectTransform>();
+        mr.anchorMin = Vector2.zero;
+        mr.anchorMax = Vector2.one;
+        mr.sizeDelta = new Vector2(-2, -2);
+        mr.pivot = new Vector2(0.5f, 0.5f);
+        maskHolder.AddComponent<Mask>();
 
         GameObject healthFill = new GameObject("HealthFill", typeof(RectTransform), typeof(Image));
-        healthFill.transform.SetParent(clip.transform, false);
+        healthFill.transform.SetParent(maskHolder.transform, false);
         RectTransform hfr = healthFill.GetComponent<RectTransform>();
         hfr.anchorMin = Vector2.zero;
         hfr.anchorMax = new Vector2(1f, 1f);
         hfr.sizeDelta = Vector2.zero;
         hfr.pivot = new Vector2(0f, 0.5f);
-        hfr.GetComponent<Image>().color = isLeft ? new Color(0.15f, 0.9f, 0.25f) : new Color(0.95f, 0.35f, 0.25f);
+        hfr.GetComponent<Image>().color = new Color(0.15f, 0.9f, 0.25f);
 
         GameObject lostFill = new GameObject("LostHealthFill", typeof(RectTransform), typeof(Image));
-        lostFill.transform.SetParent(clip.transform, false);
+        lostFill.transform.SetParent(maskHolder.transform, false);
         RectTransform lfr = lostFill.GetComponent<RectTransform>();
         lfr.anchorMin = Vector2.zero;
         lfr.anchorMax = Vector2.zero;
         lfr.sizeDelta = Vector2.zero;
         lfr.pivot = new Vector2(0f, 0.5f);
-        lfr.GetComponent<Image>().color = new Color(0.25f, 0.25f, 0.25f);
+        lfr.GetComponent<Image>().color = new Color(0.85f, 0.12f, 0.12f);
 
         GameObject shieldFill = new GameObject("ShieldFill", typeof(RectTransform), typeof(Image));
-        shieldFill.transform.SetParent(clip.transform, false);
+        shieldFill.transform.SetParent(maskHolder.transform, false);
         RectTransform sfr = shieldFill.GetComponent<RectTransform>();
         sfr.anchorMin = new Vector2(0.7f, 0f);
         sfr.anchorMax = new Vector2(0.7f, 1f);

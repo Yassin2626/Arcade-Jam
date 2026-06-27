@@ -53,6 +53,7 @@ public class PlayerActions : MonoBehaviour {
                         _canShoot = false;
                         Transform spawnPoint = _playerWeapon.weapon.transform;
                         GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
+                        newObject.transform.localScale = Vector3.one * 0.06f;
                         SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
                         sr.color = bulletColor;
                         if (_bulletGunSprite != null)

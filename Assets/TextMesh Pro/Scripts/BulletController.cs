@@ -36,6 +36,8 @@ public class BulletController : MonoBehaviour {
 
     public void SetDirection(Vector2 dir) {
         _direction = dir;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     private void Update() {

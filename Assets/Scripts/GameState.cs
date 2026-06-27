@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameState : MonoBehaviour
@@ -19,6 +17,12 @@ public class GameState : MonoBehaviour
     public int playerOneHealth = 3;
     public int playerTwoHealth = 3;
     
+    // Player character and gun selection indices
+    public int playerOneCharacterIndex = 0;
+    public int playerOneGunIndex = 0;
+    public int playerTwoCharacterIndex = 0;
+    public int playerTwoGunIndex = 0;
+
     // Input axis and button string prefixes used to map multiplayer controls dynamically
     public string horizontalAxis = "Horizontal_";
     public string verticalAxis = "Vertical_";
@@ -125,6 +129,20 @@ public class GameState : MonoBehaviour
                 _readyView.SetReady(player);
                 break;
             }
+        }
+    }
+
+    public void SetCharacterSelection(string player, int index) {
+        switch (player) {
+            case "1": playerOneCharacterIndex = index; break;
+            case "2": playerTwoCharacterIndex = index; break;
+        }
+    }
+
+    public void SetGunSelection(string player, int index) {
+        switch (player) {
+            case "1": playerOneGunIndex = index; break;
+            case "2": playerTwoGunIndex = index; break;
         }
     }
 }

@@ -1,9 +1,6 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 public class PlayerActions : MonoBehaviour {
     // Identifier string for the player (e.g., "1", "2") to map multiplayer inputs
@@ -54,10 +51,7 @@ public class PlayerActions : MonoBehaviour {
             
             // Handles input during the pre-match preparation phase
             case GameState.GameStateEnum.GetReady: {
-                // If the player presses their designated jump button, set their ready status
-                if (Input.GetButtonDown(GameState.Instance.jumpButton + playerCount)) {
-                    GameState.Instance.SetReady(playerCount);
-                }
+                // Selection UI handles all input during this phase
                 break;
             }
             

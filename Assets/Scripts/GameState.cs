@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,12 +39,16 @@ public class GameState : MonoBehaviour
     public enum GameStateEnum {
         GetReady,
         InMatch,
+        RoundTransition,
         GameOver,
     }
 
     public GameStateEnum gameState;
 
     private Canvas _canvas;
+    private Canvas _overlayCanvas;
+    private TextMeshProUGUI _roundOverText;
+    private float _roundTimer;
     private GameObject _healthBarP1;
     private GameObject _healthBarP2;
     private Image _healthFillP1;
@@ -78,6 +83,7 @@ public class GameState : MonoBehaviour
         gameState = GameStateEnum.GetReady;
         _readyView = gameObject.GetComponent<ReadyView>();
         _canvas = FindObjectOfType<Canvas>();
+        CreateOverlayCanvas();
         CreateHealthBars();
         CreatePotionPrefab();
         CreateHealthPotionPrefab();
@@ -138,9 +144,32 @@ public class GameState : MonoBehaviour
         playerTwoShield = 0;
         foreach (ShieldPickup p in FindObjectsOfType<ShieldPickup>()) Destroy(p.gameObject);
         foreach (HealthPickup p in FindObjectsOfType<HealthPickup>()) Destroy(p.gameObject);
-        _nextSpawnTime = Time.time + UnityEngine.Random.Range(5f, 8f);
-        _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(7f, 10f);
         SetRoundBackground();
+
+        gameState = GameStateEnum.RoundTransition;
+        _roundTimer = 2.5f;
+        string winner = _playerOneRoundWins > _playerTwoRoundWins ? "1" : "2";
+        _roundOverText.text = $"<size=64>ROUND {_currentRound - 1} OVER</size>\n<size=36>PLAYER {winner} WINS THE ROUND</size>\n<size=28>ROUND {_currentRound} INCOMING</size>";
+        _roundOverText.gameObject.SetActive(true);
+    }
+
+    private void CreateOverlayCanvas()
+    {
+        GameObject go = new GameObject("HealthBarCanvas", typeof(Canvas), typeof(CanvasScaler));
+        _overlayCanvas = go.GetComponent<Canvas>();
+        _overlayCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        _overlayCanvas.sortingOrder = 100;
+
+        GameObject rtGo = new GameObject("RoundOverText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        rtGo.transform.SetParent(go.transform, false);
+        _roundOverText = rtGo.GetComponent<TextMeshProUGUI>();
+        _roundOverText.fontSize = 52;
+        _roundOverText.alignment = TextAlignmentOptions.Center;
+        _roundOverText.color = new Color(0.95f, 0.85f, 0.5f);
+        _roundOverText.fontStyle = FontStyles.Bold;
+        _roundOverText.rectTransform.sizeDelta = new Vector2(800, 300);
+        _roundOverText.rectTransform.anchoredPosition = Vector2.zero;
+        _roundOverText.gameObject.SetActive(false);
     }
 
     private void CreateHealthBars()
@@ -190,17 +219,17 @@ public class GameState : MonoBehaviour
     private GameObject CreateHealthBar(string name)
     {
         GameObject bar = new GameObject(name, typeof(RectTransform));
-        bar.transform.SetParent(_canvas.transform, false);
+        bar.transform.SetParent(_overlayCanvas.transform, false);
         RectTransform rt = bar.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(200, 24);
+        rt.sizeDelta = new Vector2(280, 32);
         rt.anchorMin = new Vector2(0.5f, 0.5f);
         rt.anchorMax = new Vector2(0.5f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
 
-        Sprite rounded = GenerateRoundedRectSprite(200, 24, 5);
+        Sprite rounded = GenerateRoundedRectSprite(280, 32, 6);
         Image bg = bar.AddComponent<Image>();
         bg.sprite = rounded;
-        bg.color = new Color(0.12f, 0.08f, 0.08f);
+        bg.color = new Color(0.08f, 0.05f, 0.05f);
         bar.AddComponent<Mask>();
 
         GameObject healthFill = new GameObject("HealthFill", typeof(RectTransform), typeof(Image));
@@ -210,7 +239,7 @@ public class GameState : MonoBehaviour
         hfr.anchorMax = new Vector2(1f, 1f);
         hfr.sizeDelta = Vector2.zero;
         hfr.pivot = new Vector2(0f, 0.5f);
-        hfr.GetComponent<Image>().color = new Color(0.2f, 0.7f, 0.2f);
+        hfr.GetComponent<Image>().color = new Color(0.15f, 0.85f, 0.25f);
 
         GameObject lostFill = new GameObject("LostHealthFill", typeof(RectTransform), typeof(Image));
         lostFill.transform.SetParent(bar.transform, false);
@@ -219,7 +248,7 @@ public class GameState : MonoBehaviour
         lfr.anchorMax = Vector2.zero;
         lfr.sizeDelta = Vector2.zero;
         lfr.pivot = new Vector2(0f, 0.5f);
-        lfr.GetComponent<Image>().color = new Color(0.7f, 0.15f, 0.15f);
+        lfr.GetComponent<Image>().color = new Color(0.85f, 0.15f, 0.15f);
 
         GameObject shieldFill = new GameObject("ShieldFill", typeof(RectTransform), typeof(Image));
         shieldFill.transform.SetParent(bar.transform, false);
@@ -228,7 +257,7 @@ public class GameState : MonoBehaviour
         sfr.anchorMax = new Vector2(0.7f, 1f);
         sfr.sizeDelta = Vector2.zero;
         sfr.pivot = new Vector2(0f, 0.5f);
-        sfr.GetComponent<Image>().color = new Color(0.15f, 0.4f, 0.9f);
+        sfr.GetComponent<Image>().color = new Color(0.15f, 0.45f, 0.95f);
 
         return bar;
     }
@@ -312,8 +341,7 @@ public class GameState : MonoBehaviour
                         StartNextRound();
                     }
                 }
-                UpdateHealthBarPosition(_healthBarP1, player1Transform, _healthFillP1, _lostHealthFillP1, _shieldFillP1, playerOneHealth, playerOneShield);
-                UpdateHealthBarPosition(_healthBarP2, player2Transform, _healthFillP2, _lostHealthFillP2, _shieldFillP2, playerTwoHealth, playerTwoShield);
+                UpdateHealthBars();
                 if (Time.time >= _nextSpawnTime)
                 {
                     SpawnPotion();
@@ -323,6 +351,18 @@ public class GameState : MonoBehaviour
                 {
                     SpawnHealthPotion();
                     _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                }
+                break;
+            }
+            case GameStateEnum.RoundTransition: {
+                UpdateHealthBars();
+                _roundTimer -= Time.deltaTime;
+                if (_roundTimer <= 0f)
+                {
+                    _roundOverText.gameObject.SetActive(false);
+                    gameState = GameStateEnum.InMatch;
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(5f, 8f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(7f, 10f);
                 }
                 break;
             }
@@ -343,6 +383,12 @@ public class GameState : MonoBehaviour
     {
         if (_healthBarP1 != null) _healthBarP1.SetActive(false);
         if (_healthBarP2 != null) _healthBarP2.SetActive(false);
+    }
+
+    private void UpdateHealthBars()
+    {
+        UpdateHealthBarPosition(_healthBarP1, player1Transform, _healthFillP1, _lostHealthFillP1, _shieldFillP1, playerOneHealth, playerOneShield);
+        UpdateHealthBarPosition(_healthBarP2, player2Transform, _healthFillP2, _lostHealthFillP2, _shieldFillP2, playerTwoHealth, playerTwoShield);
     }
 
     private void UpdateHealthBarPosition(GameObject bar, Transform player, Image healthFill, Image lostHealthFill, Image shieldFill, int health, int shield)

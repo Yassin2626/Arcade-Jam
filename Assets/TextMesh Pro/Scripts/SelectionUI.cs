@@ -44,12 +44,12 @@ public class SelectionUI : MonoBehaviour
     private AudioClip _readyChime;
     private AudioClip _unreadyTap;
 
-    private string[] _characterNames = { "Warrior", "Pharaoh" };
+    private string[] _characterNames = { "Pharaoh" };
     private string[] _gunNames = { "Gun", "Sickle" };
 
     private class PlayerSelections
     {
-        public int charIndex = 1;
+        public int charIndex = 0;
         public int gunIndex = 0;
         public int currentRow = 1;
         public bool ready = false;
@@ -109,12 +109,12 @@ public class SelectionUI : MonoBehaviour
             characterSprites = new Sprite[_characterNames.Length];
             Sprite head = Resources.Load<Sprite>("The-Head-1");
             if (head != null)
-                characterSprites[1] = head;
+                characterSprites[0] = head;
         }
         if (gunSprites == null || gunSprites.Length == 0)
         {
             gunSprites = new Sprite[_gunNames.Length];
-            Sprite gun = Resources.Load<Sprite>("pixil-frame-0 (2)_0");
+            Sprite gun = Resources.Load<Sprite>("gun");
             if (gun != null)
                 gunSprites[0] = gun;
             Sprite sickle = Resources.Load<Sprite>("The-Sickle");
@@ -291,6 +291,11 @@ public class SelectionUI : MonoBehaviour
         {
             p.charLeftArrow = leftArrow;
             p.charRightArrow = rightArrow;
+            if (items.Length <= 1)
+            {
+                leftArrow.gameObject.SetActive(false);
+                rightArrow.gameObject.SetActive(false);
+            }
             p.charBox = box;
             p.charBoxLabel = nameText;
             p.charLabel = lbl;

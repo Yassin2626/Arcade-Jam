@@ -125,14 +125,20 @@ public class GameState : MonoBehaviour
         GameObject bg = new GameObject("RoundBackground", typeof(SpriteRenderer));
         _backgroundRenderer = bg.GetComponent<SpriteRenderer>();
         _backgroundRenderer.sortingOrder = -100;
-        _backgroundRenderer.transform.position = new Vector3(0, 0, 10);
     }
 
     private void SetRoundBackground()
     {
         string bgName = _currentRound == 1 ? "bg_round1" : "bg_round2";
         Sprite bgSprite = Resources.Load<Sprite>(bgName);
-        if (bgSprite != null) _backgroundRenderer.sprite = bgSprite;
+        if (bgSprite != null)
+        {
+            _backgroundRenderer.sprite = bgSprite;
+            float camHeight = 2f * Camera.main.orthographicSize;
+            float camWidth = camHeight * Camera.main.aspect;
+            float scale = Mathf.Max(camWidth / bgSprite.bounds.size.x, camHeight / bgSprite.bounds.size.y);
+            _backgroundRenderer.transform.localScale = Vector3.one * scale;
+        }
     }
 
     private void StartNextRound()

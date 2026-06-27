@@ -49,8 +49,8 @@ public class SelectionUI : MonoBehaviour
 
     private class PlayerSelections
     {
-        public int charIndex = 0;
-        public int gunIndex = 0;
+        public int charIndex = 1;
+        public int gunIndex = 2;
         public int currentRow = 0;
         public bool ready = false;
         public float lastH = 0f;

@@ -18,10 +18,10 @@ public class GameState : MonoBehaviour
     public int playerOneShield = 0;
     public int playerTwoShield = 0;
 
-    public int playerOneCharacterIndex = 0;
-    public int playerOneGunIndex = 0;
-    public int playerTwoCharacterIndex = 0;
-    public int playerTwoGunIndex = 0;
+    public int playerOneCharacterIndex = 1;
+    public int playerOneGunIndex = 2;
+    public int playerTwoCharacterIndex = 1;
+    public int playerTwoGunIndex = 2;
 
     private int[] _baseDamage = { 10, 10, 10 };
     private float[] _damageMultiplier = { 1f, 1f, 2f };
@@ -50,6 +50,8 @@ public class GameState : MonoBehaviour
     private Image _healthFillP2;
     private Image _shieldFillP1;
     private Image _shieldFillP2;
+    private Image _lostHealthFillP1;
+    private Image _lostHealthFillP2;
 
     public Transform player1Transform;
     public Transform player2Transform;
@@ -111,52 +113,88 @@ public class GameState : MonoBehaviour
         _healthBarP2 = CreateHealthBar("HealthBar_P2");
         _healthFillP1 = _healthBarP1.transform.Find("HealthFill").GetComponent<Image>();
         _healthFillP2 = _healthBarP2.transform.Find("HealthFill").GetComponent<Image>();
+        _lostHealthFillP1 = _healthBarP1.transform.Find("LostHealthFill").GetComponent<Image>();
+        _lostHealthFillP2 = _healthBarP2.transform.Find("LostHealthFill").GetComponent<Image>();
         _shieldFillP1 = _healthBarP1.transform.Find("ShieldFill").GetComponent<Image>();
         _shieldFillP2 = _healthBarP2.transform.Find("ShieldFill").GetComponent<Image>();
         _healthBarP1.SetActive(false);
         _healthBarP2.SetActive(false);
     }
 
+    private Sprite GenerateRoundedRectSprite(int width, int height, float radius)
+    {
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        Color white = Color.white;
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float cx, cy;
+                if (x < radius && y >= height - radius)
+                { cx = radius; cy = height - 1 - radius; }
+                else if (x >= width - radius && y >= height - radius)
+                { cx = width - 1 - radius; cy = height - 1 - radius; }
+                else if (x < radius && y < radius)
+                { cx = radius; cy = radius; }
+                else if (x >= width - radius && y < radius)
+                { cx = width - 1 - radius; cy = radius; }
+                else { tex.SetPixel(x, y, white); continue; }
+                float dx = x - cx;
+                float dy = y - cy;
+                float dist = Mathf.Sqrt(dx * dx + dy * dy);
+                float alpha = Mathf.Clamp01(radius - dist + 0.5f);
+                tex.SetPixel(x, y, new Color(white.r, white.g, white.b, alpha));
+            }
+        }
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
+    }
+
     private GameObject CreateHealthBar(string name)
     {
-        GameObject container = new GameObject(name, typeof(RectTransform));
-        container.transform.SetParent(_canvas.transform, false);
-        RectTransform cr = container.GetComponent<RectTransform>();
-        cr.sizeDelta = new Vector2(120, 22);
-        cr.anchorMin = new Vector2(0.5f, 0.5f);
-        cr.anchorMax = new Vector2(0.5f, 0.5f);
-        cr.pivot = new Vector2(0.5f, 0.5f);
+        GameObject bar = new GameObject(name, typeof(RectTransform));
+        bar.transform.SetParent(_canvas.transform, false);
+        RectTransform rt = bar.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(200, 24);
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
 
-        GameObject bg = new GameObject("BG", typeof(RectTransform), typeof(Image));
-        bg.transform.SetParent(container.transform, false);
-        RectTransform br = bg.GetComponent<RectTransform>();
-        br.anchorMin = Vector2.zero;
-        br.anchorMax = Vector2.one;
-        br.sizeDelta = Vector2.zero;
-        Image bi = bg.GetComponent<Image>();
-        bi.color = new Color(0.3f, 0.08f, 0.08f);
-
-        GameObject shieldFill = new GameObject("ShieldFill", typeof(RectTransform), typeof(Image));
-        shieldFill.transform.SetParent(container.transform, false);
-        RectTransform sfr = shieldFill.GetComponent<RectTransform>();
-        sfr.anchorMin = new Vector2(0f, 0.65f);
-        sfr.anchorMax = new Vector2(0f, 1f);
-        sfr.sizeDelta = Vector2.zero;
-        sfr.pivot = new Vector2(0f, 0.5f);
-        Image sfi = shieldFill.GetComponent<Image>();
-        sfi.color = new Color(0.1f, 0.3f, 0.8f);
+        Sprite rounded = GenerateRoundedRectSprite(200, 24, 5);
+        Image bg = bar.AddComponent<Image>();
+        bg.sprite = rounded;
+        bg.color = new Color(0.12f, 0.08f, 0.08f);
+        bar.AddComponent<Mask>();
 
         GameObject healthFill = new GameObject("HealthFill", typeof(RectTransform), typeof(Image));
-        healthFill.transform.SetParent(container.transform, false);
+        healthFill.transform.SetParent(bar.transform, false);
         RectTransform hfr = healthFill.GetComponent<RectTransform>();
-        hfr.anchorMin = new Vector2(0f, 0f);
-        hfr.anchorMax = new Vector2(0f, 0.65f);
+        hfr.anchorMin = Vector2.zero;
+        hfr.anchorMax = new Vector2(1f, 1f);
         hfr.sizeDelta = Vector2.zero;
         hfr.pivot = new Vector2(0f, 0.5f);
-        Image hfi = healthFill.GetComponent<Image>();
-        hfi.color = new Color(0.2f, 0.7f, 0.2f);
+        hfr.GetComponent<Image>().color = new Color(0.2f, 0.7f, 0.2f);
 
-        return container;
+        GameObject lostFill = new GameObject("LostHealthFill", typeof(RectTransform), typeof(Image));
+        lostFill.transform.SetParent(bar.transform, false);
+        RectTransform lfr = lostFill.GetComponent<RectTransform>();
+        lfr.anchorMin = Vector2.zero;
+        lfr.anchorMax = Vector2.zero;
+        lfr.sizeDelta = Vector2.zero;
+        lfr.pivot = new Vector2(0f, 0.5f);
+        lfr.GetComponent<Image>().color = new Color(0.7f, 0.15f, 0.15f);
+
+        GameObject shieldFill = new GameObject("ShieldFill", typeof(RectTransform), typeof(Image));
+        shieldFill.transform.SetParent(bar.transform, false);
+        RectTransform sfr = shieldFill.GetComponent<RectTransform>();
+        sfr.anchorMin = new Vector2(0.7f, 0f);
+        sfr.anchorMax = new Vector2(0.7f, 1f);
+        sfr.sizeDelta = Vector2.zero;
+        sfr.pivot = new Vector2(0f, 0.5f);
+        sfr.GetComponent<Image>().color = new Color(0.15f, 0.4f, 0.9f);
+
+        return bar;
     }
 
     public int GetDamage(int gunIndex)
@@ -224,8 +262,8 @@ public class GameState : MonoBehaviour
                     HideHealthBars();
                     _readyView.SetInGameOver(playerOneHealth <= 0 ? "2" : "1");
                 }
-                UpdateHealthBarPosition(_healthBarP1, player1Transform, _healthFillP1, _shieldFillP1, playerOneHealth, playerOneShield);
-                UpdateHealthBarPosition(_healthBarP2, player2Transform, _healthFillP2, _shieldFillP2, playerTwoHealth, playerTwoShield);
+                UpdateHealthBarPosition(_healthBarP1, player1Transform, _healthFillP1, _lostHealthFillP1, _shieldFillP1, playerOneHealth, playerOneShield);
+                UpdateHealthBarPosition(_healthBarP2, player2Transform, _healthFillP2, _lostHealthFillP2, _shieldFillP2, playerTwoHealth, playerTwoShield);
                 if (Time.time >= _nextSpawnTime)
                 {
                     SpawnPotion();
@@ -257,16 +295,17 @@ public class GameState : MonoBehaviour
         if (_healthBarP2 != null) _healthBarP2.SetActive(false);
     }
 
-    private void UpdateHealthBarPosition(GameObject bar, Transform player, Image healthFill, Image shieldFill, int health, int shield)
+    private void UpdateHealthBarPosition(GameObject bar, Transform player, Image healthFill, Image lostHealthFill, Image shieldFill, int health, int shield)
     {
         if (bar == null || player == null || healthFill == null) return;
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(player.position + Vector3.up * 2.5f);
-        RectTransform rt = bar.GetComponent<RectTransform>();
-        rt.position = screenPos;
+        bar.GetComponent<RectTransform>().position = Camera.main.WorldToScreenPoint(player.position + Vector3.up * 2.5f);
         float hp = Mathf.Clamp01((float)health / MaxHealth);
         float sp = Mathf.Clamp01((float)shield / MaxShield);
-        healthFill.rectTransform.anchorMax = new Vector2(hp, 0.65f);
-        shieldFill.rectTransform.anchorMax = new Vector2(sp, 1f);
+        healthFill.rectTransform.anchorMax = new Vector2(hp * 0.7f, 1f);
+        lostHealthFill.rectTransform.anchorMin = new Vector2(hp * 0.7f, 0f);
+        lostHealthFill.rectTransform.anchorMax = new Vector2(0.7f, 1f);
+        shieldFill.rectTransform.anchorMin = new Vector2(0.7f, 0f);
+        shieldFill.rectTransform.anchorMax = new Vector2(0.7f + sp * 0.3f, 1f);
         shieldFill.gameObject.SetActive(shield > 0);
     }
 

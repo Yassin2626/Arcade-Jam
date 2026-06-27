@@ -182,14 +182,14 @@ public class GameState : MonoBehaviour
 
     private void CreateHealthBars()
     {
-        _healthBarP1 = CreateHealthBar("HealthBar_P1", true);
-        _healthBarP2 = CreateHealthBar("HealthBar_P2", false);
-        _healthFillP1 = _healthBarP1.transform.Find("HealthFill").GetComponent<Image>();
-        _healthFillP2 = _healthBarP2.transform.Find("HealthFill").GetComponent<Image>();
-        _lostHealthFillP1 = _healthBarP1.transform.Find("LostHealthFill").GetComponent<Image>();
-        _lostHealthFillP2 = _healthBarP2.transform.Find("LostHealthFill").GetComponent<Image>();
-        _shieldFillP1 = _healthBarP1.transform.Find("ShieldFill").GetComponent<Image>();
-        _shieldFillP2 = _healthBarP2.transform.Find("ShieldFill").GetComponent<Image>();
+        _healthBarP1 = CreateHealthBar("HealthBar_P1", true, new Color(0.15f, 0.9f, 0.25f));
+        _healthBarP2 = CreateHealthBar("HealthBar_P2", false, new Color(0.95f, 0.35f, 0.25f));
+        _healthFillP1 = _healthBarP1.transform.Find("Frame/Inner/Mask/HealthFill").GetComponent<Image>();
+        _healthFillP2 = _healthBarP2.transform.Find("Frame/Inner/Mask/HealthFill").GetComponent<Image>();
+        _lostHealthFillP1 = _healthBarP1.transform.Find("Frame/Inner/Mask/LostHealthFill").GetComponent<Image>();
+        _lostHealthFillP2 = _healthBarP2.transform.Find("Frame/Inner/Mask/LostHealthFill").GetComponent<Image>();
+        _shieldFillP1 = _healthBarP1.transform.Find("Frame/Inner/Mask/ShieldFill").GetComponent<Image>();
+        _shieldFillP2 = _healthBarP2.transform.Find("Frame/Inner/Mask/ShieldFill").GetComponent<Image>();
         _healthBarP1.SetActive(false);
         _healthBarP2.SetActive(false);
     }
@@ -224,7 +224,7 @@ public class GameState : MonoBehaviour
         return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
     }
 
-    private GameObject CreateHealthBar(string name, bool isLeft)
+    private GameObject CreateHealthBar(string name, bool isLeft, Color healthColor)
     {
         GameObject bar = new GameObject(name, typeof(RectTransform));
         bar.transform.SetParent(_overlayCanvas.transform, false);
@@ -255,7 +255,9 @@ public class GameState : MonoBehaviour
         Image fi = frame.GetComponent<Image>();
         fi.sprite = GenerateRoundedRectSprite(426, 48, 6);
         fi.type = Image.Type.Sliced;
-        fi.color = new Color(0.83f, 0.69f, 0.22f, 0.9f);
+        Color frameColor = Color.Lerp(healthColor, Color.white, 0.4f);
+        frameColor.a = 0.9f;
+        fi.color = frameColor;
 
         GameObject inner = new GameObject("Inner", typeof(RectTransform), typeof(Image));
         inner.transform.SetParent(frame.transform, false);
@@ -282,7 +284,7 @@ public class GameState : MonoBehaviour
         hfr.anchorMax = new Vector2(1f, 1f);
         hfr.sizeDelta = Vector2.zero;
         hfr.pivot = new Vector2(0f, 0.5f);
-        hfr.GetComponent<Image>().color = new Color(0.15f, 0.9f, 0.25f);
+        hfr.GetComponent<Image>().color = healthColor;
 
         GameObject lostFill = new GameObject("LostHealthFill", typeof(RectTransform), typeof(Image));
         lostFill.transform.SetParent(maskHolder.transform, false);

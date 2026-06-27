@@ -23,6 +23,8 @@ public class PlayerActions : MonoBehaviour {
         _rigidbody = GetComponent<Rigidbody2D>();
         _playerWeapon = GetComponent<PlayerWeapon>();
         _bulletGunSprite = Resources.Load<Sprite>("bullet_gun");
+        if (GetComponent<PlayerAnimator>() == null)
+            gameObject.AddComponent<PlayerAnimator>();
         if (GameState.Instance != null)
         {
             if (playerCount == "1")
@@ -53,7 +55,7 @@ public class PlayerActions : MonoBehaviour {
                         _canShoot = false;
                         Transform spawnPoint = _playerWeapon.weapon.transform;
                         GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
-                        newObject.transform.localScale = Vector3.one * 0.06f;
+                        newObject.transform.localScale = Vector3.one * 0.03f;
                         SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
                         sr.color = bulletColor;
                         if (_bulletGunSprite != null)
@@ -115,7 +117,7 @@ public class PlayerActions : MonoBehaviour {
         {
             GameObject go = new GameObject("Sickle", typeof(SpriteRenderer), typeof(BoxCollider2D), typeof(Rigidbody2D), typeof(SickleController));
             go.transform.position = wp.position;
-            go.transform.localScale = Vector3.one * 0.15f;
+            go.transform.localScale = Vector3.one * 0.18f;
 
             BoxCollider2D bc = go.GetComponent<BoxCollider2D>();
             bc.isTrigger = true;

@@ -46,11 +46,9 @@ public class BulletController : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D collision) {
         PlayerActions player = collision.GetComponent<PlayerActions>();
-        if (player != null && player.playerCount != shooterId)
-        {
-            if (GameState.Instance != null)
-                GameState.Instance.TakeDamage(player.playerCount, damage);
-        }
+        if (player == null || player.playerCount == shooterId) return;
+        if (GameState.Instance != null)
+            GameState.Instance.TakeDamage(player.playerCount, damage);
         Destroy(gameObject);
     }
 }

@@ -7,6 +7,7 @@ public class PlayerActions : MonoBehaviour {
     private Vector3 _start;
     private Rigidbody2D _rigidbody;
     private PlayerWeapon _playerWeapon;
+    private Sprite _bulletGunSprite;
 
     public GameObject xObject;
     public Color bulletColor;
@@ -20,6 +21,7 @@ public class PlayerActions : MonoBehaviour {
         _start = gameObject.transform.position;
         _rigidbody = GetComponent<Rigidbody2D>();
         _playerWeapon = GetComponent<PlayerWeapon>();
+        _bulletGunSprite = Resources.Load<Sprite>("bullet_gun");
         if (GameState.Instance != null)
         {
             if (playerCount == "1")
@@ -42,11 +44,14 @@ public class PlayerActions : MonoBehaviour {
 
                     Transform spawnPoint = _playerWeapon.weapon.transform;
                     GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
-                    newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>().color = bulletColor;
+                    SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
+                    sr.color = bulletColor;
+                    int gunIdx = playerCount == "1" ? GameState.Instance.playerOneGunIndex : GameState.Instance.playerTwoGunIndex;
+                    if (gunIdx == 0 && _bulletGunSprite != null)
+                        sr.sprite = _bulletGunSprite;
                     newObject.GetComponent<Rigidbody2D>().excludeLayers = layersToExclude;
                     BulletController bullet = newObject.GetComponent<BulletController>();
                     bullet.shooterId = playerCount;
-                    int gunIdx = playerCount == "1" ? GameState.Instance.playerOneGunIndex : GameState.Instance.playerTwoGunIndex;
                     bullet.damage = GameState.Instance.GetDamage(gunIdx);
                     bullet.SetDirection(_playerWeapon.direction);
                 }

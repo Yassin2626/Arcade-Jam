@@ -15,6 +15,7 @@ public class PlayerActions : MonoBehaviour {
     public float spawnInterval = 2f;
     public float currentTime = 0f;
     private bool _canShoot = true;
+    private int _activeSickles;
 
     private void Start()
     {
@@ -42,18 +43,26 @@ public class PlayerActions : MonoBehaviour {
                     currentTime = spawnInterval;
                     _canShoot = false;
 
-                    Transform spawnPoint = _playerWeapon.weapon.transform;
-                    GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
-                    SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
-                    sr.color = bulletColor;
                     int gunIdx = playerCount == "1" ? GameState.Instance.playerOneGunIndex : GameState.Instance.playerTwoGunIndex;
-                    if (gunIdx == 0 && _bulletGunSprite != null)
-                        sr.sprite = _bulletGunSprite;
-                    newObject.GetComponent<Rigidbody2D>().excludeLayers = layersToExclude;
-                    BulletController bullet = newObject.GetComponent<BulletController>();
-                    bullet.shooterId = playerCount;
-                    bullet.damage = GameState.Instance.GetDamage(gunIdx);
-                    bullet.SetDirection(_playerWeapon.direction);
+
+                    if (gunIdx == 1)
+                    {
+                        SpawnSickles();
+                    }
+                    else
+                    {
+                        Transform spawnPoint = _playerWeapon.weapon.transform;
+                        GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
+                        SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
+                        sr.color = bulletColor;
+                        if (_bulletGunSprite != null)
+                            sr.sprite = _bulletGunSprite;
+                        newObject.GetComponent<Rigidbody2D>().excludeLayers = layersToExclude;
+                        BulletController bullet = newObject.GetComponent<BulletController>();
+                        bullet.shooterId = playerCount;
+                        bullet.damage = GameState.Instance.GetDamage(gunIdx);
+                        bullet.SetDirection(_playerWeapon.direction);
+                    }
                 }
 
                 if (Input.GetButtonDown(GameState.Instance.actionB + playerCount)) {
@@ -92,6 +101,47 @@ public class PlayerActions : MonoBehaviour {
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {
+    }
+
+    private void SpawnSickles()
+    {
+        _activeSickles = 2;
+        Vector2 dir = _playerWeapon.direction;
+        Transform wp = _playerWeapon.weapon.transform;
+
+        for (int i = 0; i < 2; i++)
+        {
+            GameObject go = new GameObject("Sickle", typeof(SpriteRenderer), typeof(BoxCollider2D), typeof(Rigidbody2D), typeof(SickleController));
+            go.transform.position = wp.position;
+            go.transform.localScale = Vector3.one * 0.15f;
+
+            SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
+            sr.sortingOrder = 20;
+
+            BoxCollider2D bc = go.GetComponent<BoxCollider2D>();
+            bc.isTrigger = true;
+            bc.size = new Vector2(1f, 1f);
+
+            Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
+            rb.gravityScale = 0f;
+            rb.freezeRotation = true;
+
+            SickleController sc = go.GetComponent<SickleController>();
+            sc.shooterId = playerCount;
+            sc.damage = GameState.Instance.GetDamage(1);
+            float yOff = i == 0 ? 0.4f : -0.4f;
+            sc.Init(this, dir, yOff);
+        }
+    }
+
+    public void OnSickleReturned()
+    {
+        _activeSickles--;
+        if (_activeSickles <= 0)
+        {
+            _activeSickles = 0;
+            _canShoot = true;
+        }
     }
 
     public void ResetToStart()

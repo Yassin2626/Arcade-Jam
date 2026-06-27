@@ -72,7 +72,9 @@ public class GameState : MonoBehaviour
     private const int _roundsNeededToWin = 2;
     private SpriteRenderer _backgroundRenderer;
     private AudioSource _audioSource;
+    private AudioSource _bgmSource;
     private AudioClip _victorySound;
+    private AudioClip[] _bgmClips;
 
     private void Start()
     {
@@ -90,6 +92,13 @@ public class GameState : MonoBehaviour
             _audioSource = gameObject.AddComponent<AudioSource>();
         _audioSource.playOnAwake = false;
         _victorySound = Resources.Load<AudioClip>("victory");
+        _bgmSource = gameObject.AddComponent<AudioSource>();
+        _bgmSource.playOnAwake = false;
+        _bgmSource.loop = true;
+        _bgmClips = new AudioClip[3];
+        _bgmClips[0] = Resources.Load<AudioClip>("bgm_round1");
+        _bgmClips[1] = Resources.Load<AudioClip>("bgm_round2");
+        _bgmClips[2] = Resources.Load<AudioClip>("bgm_round3");
         CreateOverlayCanvas();
         CreateHealthBars();
         CreatePotionPrefab();
@@ -136,7 +145,8 @@ public class GameState : MonoBehaviour
 
     private void SetRoundBackground()
     {
-        string bgName = _currentRound == 1 ? "bg_round1" : _currentRound == 2 ? "bg_round2" : "bg_round3";
+        int bgIdx = _currentRound == 1 ? 0 : _currentRound == 2 ? 1 : 2;
+        string bgName = bgIdx == 0 ? "bg_round1" : bgIdx == 1 ? "bg_round2" : "bg_round3";
         Sprite bgSprite = Resources.Load<Sprite>(bgName);
         if (bgSprite != null)
         {
@@ -145,6 +155,14 @@ public class GameState : MonoBehaviour
             float camWidth = camHeight * Camera.main.aspect;
             float scale = Mathf.Max(camWidth / bgSprite.bounds.size.x, camHeight / bgSprite.bounds.size.y);
             _backgroundRenderer.transform.localScale = Vector3.one * scale;
+        }
+
+        if (_bgmSource != null && bgIdx >= 0 && bgIdx < _bgmClips.Length && _bgmClips[bgIdx] != null)
+        {
+            _bgmSource.Stop();
+            _bgmSource.clip = _bgmClips[bgIdx];
+            _bgmSource.time = 10f;
+            _bgmSource.Play();
         }
     }
 

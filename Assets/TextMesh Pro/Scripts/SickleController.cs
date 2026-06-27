@@ -43,24 +43,7 @@ public class SickleController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (Physics2D.OverlapCircle(transform.position, 0.1f, wallMask))
-        {
-            if (_owner != null) _owner.OnSickleReturned();
-            Destroy(gameObject);
-            return;
-        }
-
-        if (!_returning)
-        {
-            _rb.velocity = _direction * speed;
-            _distanceTraveled += speed * Time.fixedDeltaTime;
-            if (_distanceTraveled >= maxDistance)
-            {
-                _returning = true;
-                _rb.velocity = Vector2.zero;
-            }
-        }
-        else
+        if (_returning)
         {
             if (_owner == null)
             {
@@ -75,6 +58,22 @@ public class SickleController : MonoBehaviour
                 _owner.OnSickleReturned();
                 Destroy(gameObject);
             }
+            return;
+        }
+
+        if (Physics2D.OverlapCircle(transform.position, 0.1f, wallMask))
+        {
+            _returning = true;
+            _rb.velocity = Vector2.zero;
+            return;
+        }
+
+        _rb.velocity = _direction * speed;
+        _distanceTraveled += speed * Time.fixedDeltaTime;
+        if (_distanceTraveled >= maxDistance)
+        {
+            _returning = true;
+            _rb.velocity = Vector2.zero;
         }
     }
 

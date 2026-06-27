@@ -40,8 +40,6 @@ public class PlayerActions : MonoBehaviour {
             case GameState.GameStateEnum.InMatch: {
                 if (Input.GetButtonDown(GameState.Instance.actionX + playerCount)) {
                     if (!_canShoot) return;
-                    currentTime = spawnInterval;
-                    _canShoot = false;
 
                     int gunIdx = playerCount == "1" ? GameState.Instance.playerOneGunIndex : GameState.Instance.playerTwoGunIndex;
 
@@ -51,6 +49,8 @@ public class PlayerActions : MonoBehaviour {
                     }
                     else
                     {
+                        currentTime = spawnInterval;
+                        _canShoot = false;
                         Transform spawnPoint = _playerWeapon.weapon.transform;
                         GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
                         SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
@@ -81,7 +81,7 @@ public class PlayerActions : MonoBehaviour {
                     Debug.Log(GameState.Instance.actionLB + playerCount + " Left Bumper button Pressed");
                 }
 
-                if (!_canShoot) {
+                if (!_canShoot && _activeSickles <= 0) {
                     currentTime -= Time.deltaTime;
                     if (currentTime < 0) {
                         _canShoot = true;
@@ -105,6 +105,7 @@ public class PlayerActions : MonoBehaviour {
 
     private void SpawnSickles()
     {
+        _canShoot = false;
         _activeSickles = 2;
         Vector2 dir = _playerWeapon.direction;
         Transform wp = _playerWeapon.weapon.transform;
@@ -114,9 +115,6 @@ public class PlayerActions : MonoBehaviour {
             GameObject go = new GameObject("Sickle", typeof(SpriteRenderer), typeof(BoxCollider2D), typeof(Rigidbody2D), typeof(SickleController));
             go.transform.position = wp.position;
             go.transform.localScale = Vector3.one * 0.15f;
-
-            SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-            sr.sortingOrder = 20;
 
             BoxCollider2D bc = go.GetComponent<BoxCollider2D>();
             bc.isTrigger = true;
@@ -146,6 +144,10 @@ public class PlayerActions : MonoBehaviour {
 
     public void ResetToStart()
     {
+        foreach (SickleController sc in FindObjectsOfType<SickleController>())
+            if (sc.shooterId == playerCount)
+                Destroy(sc.gameObject);
+        _activeSickles = 0;
         transform.position = _start;
         if (_rigidbody != null)
             _rigidbody.velocity = Vector2.zero;

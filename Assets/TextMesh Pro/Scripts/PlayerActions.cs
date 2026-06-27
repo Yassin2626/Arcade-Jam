@@ -33,9 +33,9 @@ using UnityEngine.SceneManagement;
             _sickleSound = Resources.Load<AudioClip>("sickle_throw");
             _gunSound = Resources.Load<AudioClip>("gun_shoot");
             if (GetComponent<PlayerAnimator>() == null)
-                gameObject.AddComponent<PlayerAnimator>();
-            if (GetComponent<PlayerHand>() == null)
-                gameObject.AddComponent<PlayerHand>();
+            gameObject.AddComponent<PlayerAnimator>();
+        if (GetComponent<PlayerHand>() == null)
+            gameObject.AddComponent<PlayerHand>();
         if (GameState.Instance != null)
         {
             if (playerCount == "1")
@@ -170,7 +170,10 @@ using UnityEngine.SceneManagement;
         if (_rigidbody != null)
             _rigidbody.velocity = Vector2.zero;
         if (_playerWeapon != null)
-            _playerWeapon.ResetDirection();
+        {
+            _playerWeapon.direction = Vector2.right;
+            _playerWeapon.weapon.transform.position = (Vector2)transform.position + Vector2.right * _playerWeapon.aimDistance;
+        }
         _canShoot = true;
         currentTime = 0f;
     }

@@ -12,6 +12,7 @@ public class PlayerWeapon : MonoBehaviour {
     private void Start()
     {
         _playerActions = GetComponent<PlayerActions>();
+
         SpriteRenderer sr = weapon.GetComponent<SpriteRenderer>();
         if (sr != null) sr.enabled = false;
 
@@ -37,8 +38,11 @@ public class PlayerWeapon : MonoBehaviour {
             direction = inputDir.normalized;
             weapon.transform.position = (Vector2)transform.position + direction * aimDistance;
 
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            _dirIndicator.transform.rotation = Quaternion.Euler(0, 0, angle);
+            if (_dirIndicator != null)
+            {
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                _dirIndicator.transform.rotation = Quaternion.Euler(0, 0, angle);
+            }
         }
     }
 
@@ -46,7 +50,6 @@ public class PlayerWeapon : MonoBehaviour {
     {
         direction = Vector2.right;
         weapon.transform.position = (Vector2)transform.position + direction * aimDistance;
-        weapon.transform.rotation = Quaternion.identity;
         if (_dirIndicator != null)
             _dirIndicator.transform.rotation = Quaternion.identity;
     }

@@ -45,12 +45,12 @@ public class SelectionUI : MonoBehaviour
     private AudioClip _unreadyTap;
 
     private string[] _characterNames = { "Warrior", "Pharaoh" };
-    private string[] _gunNames = { "Khopesh", "Bow", "Sickle" };
+    private string[] _gunNames = { "Gun", "Sickle" };
 
     private class PlayerSelections
     {
         public int charIndex = 1;
-        public int gunIndex = 2;
+        public int gunIndex = 0;
         public int currentRow = 1;
         public bool ready = false;
         public float lastH = 0f;
@@ -114,9 +114,12 @@ public class SelectionUI : MonoBehaviour
         if (gunSprites == null || gunSprites.Length == 0)
         {
             gunSprites = new Sprite[_gunNames.Length];
+            Sprite gun = Resources.Load<Sprite>("gun");
+            if (gun != null)
+                gunSprites[0] = gun;
             Sprite sickle = Resources.Load<Sprite>("The-Sickle");
             if (sickle != null)
-                gunSprites[2] = sickle;
+                gunSprites[1] = sickle;
         }
     }
 

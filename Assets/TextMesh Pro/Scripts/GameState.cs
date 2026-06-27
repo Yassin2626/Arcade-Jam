@@ -20,12 +20,12 @@ public class GameState : MonoBehaviour
     public int playerTwoShield = 0;
 
     public int playerOneCharacterIndex = 1;
-    public int playerOneGunIndex = 2;
+    public int playerOneGunIndex = 0;
     public int playerTwoCharacterIndex = 1;
-    public int playerTwoGunIndex = 2;
+    public int playerTwoGunIndex = 0;
 
-    private int[] _baseDamage = { 10, 10, 10 };
-    private float[] _damageMultiplier = { 1f, 1f, 2f };
+    private int[] _baseDamage = { 10, 10 };
+    private float[] _damageMultiplier = { 1f, 2f };
 
     public string horizontalAxis = "Horizontal_";
     public string verticalAxis = "Vertical_";

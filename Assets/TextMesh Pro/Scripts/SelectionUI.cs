@@ -93,6 +93,7 @@ public class SelectionUI : MonoBehaviour
         LoadSprites();
         LoadAudio();
         CreateUI();
+        RandomizeWeapons();
     }
 
     private void LoadAudio()
@@ -140,6 +141,15 @@ public class SelectionUI : MonoBehaviour
         CreatePlayerArea(_p1, -1, playerOneColor, "PLAYER 1");
         CreatePlayerArea(_p2, 1, playerTwoColor, "PLAYER 2");
         CreateReadyBar();
+    }
+
+    private void RandomizeWeapons()
+    {
+        int rnd = UnityEngine.Random.Range(0, _gunNames.Length);
+        _p1.gunIndex = rnd;
+        _p2.gunIndex = 1 - rnd;
+        UpdateBox(_p1);
+        UpdateBox(_p2);
     }
 
     private void CreateTitle()

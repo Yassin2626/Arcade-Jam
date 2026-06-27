@@ -7,10 +7,12 @@ public class BulletController : MonoBehaviour {
 
     public float delayBeforeShrink = 2f;
     public float shrinkDuration = 1f;
-    public int speed = 5;
+    public int speed = 40;
 
     public string shooterId = "";
     public int damage = 10;
+
+    public LayerMask wallMask = 1 << 6;
 
     private void Start()
     {
@@ -36,19 +38,21 @@ public class BulletController : MonoBehaviour {
 
     public void SetDirection(Vector2 dir) {
         _direction = dir;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     private void Update() {
         _rigidbody2D.velocity = _direction * speed;
+        if (Physics2D.OverlapCircle(transform.position, 0.05f, wallMask))
+            Destroy(gameObject);
     }
 
     private void OnTriggerEnter2D(Collider2D collision) {
         PlayerActions player = collision.GetComponent<PlayerActions>();
-        if (player != null && player.playerCount != shooterId)
-        {
-            if (GameState.Instance != null)
-                GameState.Instance.TakeDamage(player.playerCount, damage);
-        }
+        if (player == null || player.playerCount == shooterId) return;
+        if (GameState.Instance != null)
+            GameState.Instance.TakeDamage(player.playerCount, damage);
         Destroy(gameObject);
     }
 }

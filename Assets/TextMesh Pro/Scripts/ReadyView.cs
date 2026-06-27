@@ -48,7 +48,7 @@ public class ReadyView : MonoBehaviour {
     {
         if (inMatchScreen == null) return;
         Image bg = inMatchScreen.GetComponent<Image>();
-        if (bg != null) bg.color = new Color(0.10f, 0.06f, 0.04f, 0.85f);
+        if (bg != null) bg.color = new Color(0.10f, 0.06f, 0.04f, 0f);
 
         Image[] panels = inMatchScreen.GetComponentsInChildren<Image>(true);
         foreach (Image p in panels)

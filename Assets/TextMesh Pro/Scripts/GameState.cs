@@ -13,7 +13,7 @@ public class GameState : MonoBehaviour
     private bool _playerTwoReady = false;
 
     public const int MaxHealth = 100;
-    public const int MaxShield = 50;
+    public const int MaxShield = 150;
     public int playerOneHealth = MaxHealth;
     public int playerTwoHealth = MaxHealth;
     public int playerOneShield = 0;
@@ -25,7 +25,7 @@ public class GameState : MonoBehaviour
     public int playerTwoGunIndex = 0;
 
     private int[] _baseDamage = { 10, 10 };
-    private float[] _damageMultiplier = { 1f, 2f };
+    private float[] _damageMultiplier = { 1f, 1f };
 
     public string horizontalAxis = "Horizontal_";
     public string verticalAxis = "Vertical_";
@@ -71,6 +71,10 @@ public class GameState : MonoBehaviour
     private int _playerTwoRoundWins = 0;
     private const int _roundsNeededToWin = 2;
     private SpriteRenderer _backgroundRenderer;
+    private AudioSource _audioSource;
+    private AudioSource _bgmSource;
+    private AudioClip _victorySound;
+    private AudioClip[] _bgmClips;
 
     private void Start()
     {
@@ -83,11 +87,52 @@ public class GameState : MonoBehaviour
         gameState = GameStateEnum.GetReady;
         _readyView = gameObject.GetComponent<ReadyView>();
         _canvas = FindObjectOfType<Canvas>();
+        _audioSource = gameObject.GetComponent<AudioSource>();
+        if (_audioSource == null)
+            _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false;
+        _victorySound = Resources.Load<AudioClip>("victory");
+        _bgmSource = gameObject.AddComponent<AudioSource>();
+        _bgmSource.playOnAwake = false;
+        _bgmSource.loop = true;
+        _bgmClips = new AudioClip[3];
+        _bgmClips[0] = Resources.Load<AudioClip>("bgm_round1");
+        _bgmClips[1] = Resources.Load<AudioClip>("bgm_round2");
+        _bgmClips[2] = Resources.Load<AudioClip>("bgm_round3");
         CreateOverlayCanvas();
         CreateHealthBars();
         CreatePotionPrefab();
         CreateHealthPotionPrefab();
         CreateBackground();
+        SetupGround();
+    }
+
+    private void SetupGround()
+    {
+        Sprite groundTex = Resources.Load<Sprite>("ground");
+        if (groundTex == null) return;
+
+        GameObject floor = GameObject.Find("Ground");
+        if (floor != null)
+        {
+            SpriteRenderer sr = floor.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                sr.sprite = groundTex;
+                sr.color = Color.white;
+            }
+        }
+
+        string[] wallNames = { "Left Wall", "Right Wall", "Top Wall" };
+        foreach (string name in wallNames)
+        {
+            GameObject wall = GameObject.Find(name);
+            if (wall != null)
+            {
+                SpriteRenderer sr = wall.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.enabled = false;
+            }
+        }
     }
 
     private void CreatePotionPrefab()
@@ -129,7 +174,8 @@ public class GameState : MonoBehaviour
 
     private void SetRoundBackground()
     {
-        string bgName = _currentRound == 1 ? "bg_round1" : _currentRound == 2 ? "bg_round2" : "bg_round3";
+        int bgIdx = _currentRound == 1 ? 0 : _currentRound == 2 ? 1 : 2;
+        string bgName = bgIdx == 0 ? "bg_round1" : bgIdx == 1 ? "bg_round2" : "bg_round3";
         Sprite bgSprite = Resources.Load<Sprite>(bgName);
         if (bgSprite != null)
         {
@@ -138,6 +184,14 @@ public class GameState : MonoBehaviour
             float camWidth = camHeight * Camera.main.aspect;
             float scale = Mathf.Max(camWidth / bgSprite.bounds.size.x, camHeight / bgSprite.bounds.size.y);
             _backgroundRenderer.transform.localScale = Vector3.one * scale;
+        }
+
+        if (_bgmSource != null && bgIdx >= 0 && bgIdx < _bgmClips.Length && _bgmClips[bgIdx] != null)
+        {
+            _bgmSource.Stop();
+            _bgmSource.clip = _bgmClips[bgIdx];
+            _bgmSource.time = 10f;
+            _bgmSource.Play();
         }
     }
 
@@ -182,14 +236,14 @@ public class GameState : MonoBehaviour
 
     private void CreateHealthBars()
     {
-        _healthBarP1 = CreateHealthBar("HealthBar_P1", true);
-        _healthBarP2 = CreateHealthBar("HealthBar_P2", false);
-        _healthFillP1 = _healthBarP1.transform.Find("HealthFill").GetComponent<Image>();
-        _healthFillP2 = _healthBarP2.transform.Find("HealthFill").GetComponent<Image>();
-        _lostHealthFillP1 = _healthBarP1.transform.Find("LostHealthFill").GetComponent<Image>();
-        _lostHealthFillP2 = _healthBarP2.transform.Find("LostHealthFill").GetComponent<Image>();
-        _shieldFillP1 = _healthBarP1.transform.Find("ShieldFill").GetComponent<Image>();
-        _shieldFillP2 = _healthBarP2.transform.Find("ShieldFill").GetComponent<Image>();
+        _healthBarP1 = CreateHealthBar("HealthBar_P1", true, new Color(0.15f, 0.9f, 0.25f));
+        _healthBarP2 = CreateHealthBar("HealthBar_P2", false, new Color(0.95f, 0.35f, 0.25f));
+        _healthFillP1 = _healthBarP1.transform.Find("Frame/Inner/Mask/HealthFill").GetComponent<Image>();
+        _healthFillP2 = _healthBarP2.transform.Find("Frame/Inner/Mask/HealthFill").GetComponent<Image>();
+        _lostHealthFillP1 = _healthBarP1.transform.Find("Frame/Inner/Mask/LostHealthFill").GetComponent<Image>();
+        _lostHealthFillP2 = _healthBarP2.transform.Find("Frame/Inner/Mask/LostHealthFill").GetComponent<Image>();
+        _shieldFillP1 = _healthBarP1.transform.Find("Frame/Inner/Mask/ShieldFill").GetComponent<Image>();
+        _shieldFillP2 = _healthBarP2.transform.Find("Frame/Inner/Mask/ShieldFill").GetComponent<Image>();
         _healthBarP1.SetActive(false);
         _healthBarP2.SetActive(false);
     }
@@ -224,7 +278,7 @@ public class GameState : MonoBehaviour
         return Sprite.Create(tex, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
     }
 
-    private GameObject CreateHealthBar(string name, bool isLeft)
+    private GameObject CreateHealthBar(string name, bool isLeft, Color healthColor)
     {
         GameObject bar = new GameObject(name, typeof(RectTransform));
         bar.transform.SetParent(_overlayCanvas.transform, false);
@@ -233,61 +287,58 @@ public class GameState : MonoBehaviour
         rt.anchorMin = new Vector2(0.5f, 0f);
         rt.anchorMax = new Vector2(0.5f, 0f);
         rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.anchoredPosition = new Vector2(isLeft ? -240f : 240f, 50f);
+        rt.anchoredPosition = new Vector2(isLeft ? -240f : 240f, 30f);
 
         GameObject frame = new GameObject("Frame", typeof(RectTransform), typeof(Image));
         frame.transform.SetParent(bar.transform, false);
         RectTransform fr = frame.GetComponent<RectTransform>();
         fr.anchorMin = Vector2.zero;
         fr.anchorMax = Vector2.one;
-        fr.sizeDelta = new Vector2(8, 8);
+        fr.sizeDelta = new Vector2(6, 6);
         fr.pivot = new Vector2(0.5f, 0.5f);
         Image fi = frame.GetComponent<Image>();
-        fi.sprite = GenerateRoundedRectSprite(428, 50, 6);
+        fi.sprite = GenerateRoundedRectSprite(426, 48, 6);
         fi.type = Image.Type.Sliced;
-        fi.color = new Color(0.83f, 0.69f, 0.22f, 0.8f);
+        fi.color = new Color(0.83f, 0.69f, 0.22f, 0.95f);
 
-        GameObject bg = new GameObject("Bg", typeof(RectTransform), typeof(Image));
-        bg.transform.SetParent(bar.transform, false);
-        RectTransform bgr = bg.GetComponent<RectTransform>();
-        bgr.anchorMin = Vector2.zero;
-        bgr.anchorMax = Vector2.one;
-        bgr.sizeDelta = new Vector2(-8, -8);
-        bgr.pivot = new Vector2(0.5f, 0.5f);
-        Image bgi = bg.AddComponent<Image>();
-        bgi.sprite = GenerateRoundedRectSprite(412, 34, 4);
-        bgi.type = Image.Type.Sliced;
-        bgi.color = new Color(0.06f, 0.04f, 0.04f, 0.95f);
+        GameObject inner = new GameObject("Inner", typeof(RectTransform), typeof(Image));
+        inner.transform.SetParent(frame.transform, false);
+        RectTransform ir = inner.GetComponent<RectTransform>();
+        ir.anchorMin = Vector2.zero;
+        ir.anchorMax = Vector2.one;
+        ir.sizeDelta = new Vector2(-6, -6);
+        ir.pivot = new Vector2(0.5f, 0.5f);
+        inner.GetComponent<Image>().color = new Color(0.94f, 0.90f, 0.82f, 0.9f);
 
-        GameObject clip = new GameObject("Clip", typeof(RectTransform), typeof(Image));
-        clip.transform.SetParent(bg.transform, false);
-        RectTransform cr = clip.GetComponent<RectTransform>();
-        cr.anchorMin = Vector2.zero;
-        cr.anchorMax = Vector2.one;
-        cr.sizeDelta = new Vector2(-4, -4);
-        cr.pivot = new Vector2(0.5f, 0.5f);
-        clip.AddComponent<Mask>();
+        GameObject maskHolder = new GameObject("Mask", typeof(RectTransform), typeof(Image));
+        maskHolder.transform.SetParent(inner.transform, false);
+        RectTransform mr = maskHolder.GetComponent<RectTransform>();
+        mr.anchorMin = Vector2.zero;
+        mr.anchorMax = Vector2.one;
+        mr.sizeDelta = new Vector2(-2, -2);
+        mr.pivot = new Vector2(0.5f, 0.5f);
+        maskHolder.AddComponent<Mask>();
 
         GameObject healthFill = new GameObject("HealthFill", typeof(RectTransform), typeof(Image));
-        healthFill.transform.SetParent(clip.transform, false);
+        healthFill.transform.SetParent(maskHolder.transform, false);
         RectTransform hfr = healthFill.GetComponent<RectTransform>();
         hfr.anchorMin = Vector2.zero;
         hfr.anchorMax = new Vector2(1f, 1f);
         hfr.sizeDelta = Vector2.zero;
         hfr.pivot = new Vector2(0f, 0.5f);
-        hfr.GetComponent<Image>().color = isLeft ? new Color(0.15f, 0.9f, 0.25f) : new Color(0.95f, 0.35f, 0.25f);
+        hfr.GetComponent<Image>().color = healthColor;
 
         GameObject lostFill = new GameObject("LostHealthFill", typeof(RectTransform), typeof(Image));
-        lostFill.transform.SetParent(clip.transform, false);
+        lostFill.transform.SetParent(maskHolder.transform, false);
         RectTransform lfr = lostFill.GetComponent<RectTransform>();
         lfr.anchorMin = Vector2.zero;
         lfr.anchorMax = Vector2.zero;
         lfr.sizeDelta = Vector2.zero;
         lfr.pivot = new Vector2(0f, 0.5f);
-        lfr.GetComponent<Image>().color = new Color(0.25f, 0.25f, 0.25f);
+        lfr.GetComponent<Image>().color = new Color(0.60f, 0.45f, 0.10f, 0.8f);
 
         GameObject shieldFill = new GameObject("ShieldFill", typeof(RectTransform), typeof(Image));
-        shieldFill.transform.SetParent(clip.transform, false);
+        shieldFill.transform.SetParent(maskHolder.transform, false);
         RectTransform sfr = shieldFill.GetComponent<RectTransform>();
         sfr.anchorMin = new Vector2(0.7f, 0f);
         sfr.anchorMax = new Vector2(0.7f, 1f);
@@ -356,8 +407,8 @@ public class GameState : MonoBehaviour
                     SetRoundBackground();
                     _readyView.SetInMatch();
                     ShowHealthBars();
-                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
-                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(12f, 17f);
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(15f, 25f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(18f, 30f);
                 }
                 break;
             }
@@ -370,6 +421,9 @@ public class GameState : MonoBehaviour
                     {
                         gameState = GameStateEnum.GameOver;
                         HideHealthBars();
+                        if (_bgmSource != null) _bgmSource.Stop();
+                        if (_victorySound != null)
+                            _audioSource.PlayOneShot(_victorySound);
                         _readyView.SetInGameOver(_playerOneRoundWins > _playerTwoRoundWins ? "1" : "2");
                     }
                     else
@@ -381,12 +435,12 @@ public class GameState : MonoBehaviour
                 if (Time.time >= _nextSpawnTime)
                 {
                     SpawnPotion();
-                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(15f, 25f);
                 }
                 if (Time.time >= _nextHealthSpawnTime)
                 {
                     SpawnHealthPotion();
-                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(18f, 30f);
                 }
                 break;
             }
@@ -397,8 +451,8 @@ public class GameState : MonoBehaviour
                 {
                     _roundOverText.gameObject.SetActive(false);
                     gameState = GameStateEnum.InMatch;
-                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(5f, 8f);
-                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(7f, 10f);
+                    _nextSpawnTime = Time.time + UnityEngine.Random.Range(8f, 12f);
+                    _nextHealthSpawnTime = Time.time + UnityEngine.Random.Range(10f, 15f);
                 }
                 break;
             }
@@ -431,14 +485,15 @@ public class GameState : MonoBehaviour
     private void UpdateHealthBarFill(Image healthFill, Image lostHealthFill, Image shieldFill, int health, int shield)
     {
         if (healthFill == null) return;
-        float hp = Mathf.Clamp01((float)health / MaxHealth);
-        float sp = Mathf.Clamp01((float)shield / MaxShield);
-        healthFill.rectTransform.anchorMax = new Vector2(hp * 0.7f, 1f);
-        lostHealthFill.rectTransform.anchorMin = new Vector2(hp * 0.7f, 0f);
-        lostHealthFill.rectTransform.anchorMax = new Vector2(0.7f, 1f);
-        shieldFill.rectTransform.anchorMin = new Vector2(0.7f, 0f);
-        shieldFill.rectTransform.anchorMax = new Vector2(0.7f + sp * 0.3f, 1f);
+        float total = MaxHealth + MaxShield;
+        float healthEnd = Mathf.Clamp01(health / total);
+        float shieldEnd = Mathf.Clamp01((health + shield) / total);
+        healthFill.rectTransform.anchorMax = new Vector2(healthEnd, 1f);
+        shieldFill.rectTransform.anchorMin = new Vector2(healthEnd, 0f);
+        shieldFill.rectTransform.anchorMax = new Vector2(shieldEnd, 1f);
         shieldFill.gameObject.SetActive(shield > 0);
+        lostHealthFill.rectTransform.anchorMin = new Vector2(shieldEnd, 0f);
+        lostHealthFill.rectTransform.anchorMax = new Vector2(1f, 1f);
     }
 
     public void TakeDamage(string player, int amount) {

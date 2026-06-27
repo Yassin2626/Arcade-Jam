@@ -2,27 +2,38 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class PlayerActions : MonoBehaviour {
-    public string playerCount = "1";
-    private Vector3 _start;
-    private Rigidbody2D _rigidbody;
-    private PlayerWeapon _playerWeapon;
+    public class PlayerActions : MonoBehaviour {
+        public string playerCount = "1";
+        private Vector3 _start;
+        private Rigidbody2D _rigidbody;
+        private PlayerWeapon _playerWeapon;
     private Sprite _bulletGunSprite;
+    private AudioSource _audioSource;
+    private AudioClip _sickleSound;
+    private AudioClip _gunSound;
 
-    public GameObject xObject;
-    public Color bulletColor;
-    public LayerMask layersToExclude;
-    public float spawnInterval = 2f;
-    public float currentTime = 0f;
-    private bool _canShoot = true;
-    private int _activeSickles;
+        public GameObject xObject;
+        public Color bulletColor;
+        public LayerMask layersToExclude;
+        public float spawnInterval = 2f;
+        public float currentTime = 0f;
+        private bool _canShoot = true;
+        private int _activeSickles;
 
-    private void Start()
-    {
-        _start = gameObject.transform.position;
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _playerWeapon = GetComponent<PlayerWeapon>();
-        _bulletGunSprite = Resources.Load<Sprite>("bullet_gun");
+        private void Start()
+        {
+            _start = gameObject.transform.position;
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _playerWeapon = GetComponent<PlayerWeapon>();
+            _bulletGunSprite = Resources.Load<Sprite>("bullet_gun");
+            _audioSource = gameObject.GetComponent<AudioSource>();
+            if (_audioSource == null)
+                _audioSource = gameObject.AddComponent<AudioSource>();
+            _audioSource.playOnAwake = false;
+            _sickleSound = Resources.Load<AudioClip>("sickle_throw");
+            _gunSound = Resources.Load<AudioClip>("gun_shoot");
+            if (GetComponent<PlayerAnimator>() == null)
+            gameObject.AddComponent<PlayerAnimator>();
         if (GameState.Instance != null)
         {
             if (playerCount == "1")
@@ -40,8 +51,6 @@ public class PlayerActions : MonoBehaviour {
             case GameState.GameStateEnum.InMatch: {
                 if (Input.GetButtonDown(GameState.Instance.actionX + playerCount)) {
                     if (!_canShoot) return;
-                    currentTime = spawnInterval;
-                    _canShoot = false;
 
                     int gunIdx = playerCount == "1" ? GameState.Instance.playerOneGunIndex : GameState.Instance.playerTwoGunIndex;
 
@@ -51,8 +60,13 @@ public class PlayerActions : MonoBehaviour {
                     }
                     else
                     {
+                        if (_gunSound != null)
+                            _audioSource.PlayOneShot(_gunSound);
+                        currentTime = spawnInterval;
+                        _canShoot = false;
                         Transform spawnPoint = _playerWeapon.weapon.transform;
                         GameObject newObject = Instantiate(xObject, spawnPoint.position, spawnPoint.rotation);
+                        newObject.transform.localScale = Vector3.one * 0.03f;
                         SpriteRenderer sr = newObject.transform.Find("Sprite").GetComponent<SpriteRenderer>();
                         sr.color = bulletColor;
                         if (_bulletGunSprite != null)
@@ -81,7 +95,7 @@ public class PlayerActions : MonoBehaviour {
                     Debug.Log(GameState.Instance.actionLB + playerCount + " Left Bumper button Pressed");
                 }
 
-                if (!_canShoot) {
+                if (!_canShoot && _activeSickles <= 0) {
                     currentTime -= Time.deltaTime;
                     if (currentTime < 0) {
                         _canShoot = true;
@@ -105,6 +119,9 @@ public class PlayerActions : MonoBehaviour {
 
     private void SpawnSickles()
     {
+        if (_sickleSound != null)
+            _audioSource.PlayOneShot(_sickleSound);
+        _canShoot = false;
         _activeSickles = 2;
         Vector2 dir = _playerWeapon.direction;
         Transform wp = _playerWeapon.weapon.transform;
@@ -113,10 +130,7 @@ public class PlayerActions : MonoBehaviour {
         {
             GameObject go = new GameObject("Sickle", typeof(SpriteRenderer), typeof(BoxCollider2D), typeof(Rigidbody2D), typeof(SickleController));
             go.transform.position = wp.position;
-            go.transform.localScale = Vector3.one * 0.15f;
-
-            SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
-            sr.sortingOrder = 20;
+            go.transform.localScale = Vector3.one * 0.18f;
 
             BoxCollider2D bc = go.GetComponent<BoxCollider2D>();
             bc.isTrigger = true;
@@ -146,14 +160,17 @@ public class PlayerActions : MonoBehaviour {
 
     public void ResetToStart()
     {
+        foreach (SickleController sc in FindObjectsOfType<SickleController>())
+            if (sc.shooterId == playerCount)
+                Destroy(sc.gameObject);
+        _activeSickles = 0;
         transform.position = _start;
         if (_rigidbody != null)
             _rigidbody.velocity = Vector2.zero;
         if (_playerWeapon != null)
         {
             _playerWeapon.direction = Vector2.right;
-            if (_playerWeapon.positionRight != null)
-                _playerWeapon.weapon.transform.position = _playerWeapon.positionRight.position;
+            _playerWeapon.weapon.transform.position = (Vector2)transform.position + Vector2.right * _playerWeapon.aimDistance;
         }
         _canShoot = true;
         currentTime = 0f;

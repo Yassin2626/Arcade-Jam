@@ -28,5 +28,11 @@ public class PlayerMovement : MonoBehaviour {
             
         // Apply horizontal velocity while preserving the current vertical velocity
         _rigidbody2D.velocity = new Vector2(horizontal * speed, _rigidbody2D.velocity.y);
+
+        // Flip player to face movement direction
+        if (horizontal > 0f)
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        else if (horizontal < 0f)
+            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
     }
 }

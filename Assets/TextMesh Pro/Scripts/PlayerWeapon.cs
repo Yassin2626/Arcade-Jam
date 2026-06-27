@@ -1,76 +1,46 @@
-using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PlayerWeapon : MonoBehaviour {
-    
-    // Reference to the weapon GameObject that moves around the player
-    public GameObject weapon;
 
-    // Fixed positions around the player for the weapon to snap to
-    public Transform positionRight;
-    public Transform positionLeft;
-    public Transform positionTop;
-    public Transform positionBottom;
-    
-    // Reference to the player actions script to determine player index/ID
+    public GameObject weapon;
     private PlayerActions _playerActions;
-    
-    // Current aiming direction, defaults to facing right
-    public Vector2 direction  = Vector2.right;
-    
-    // Start is called before the first frame update
+    public Vector2 direction = Vector2.right;
+    public float aimDistance = 0.75f;
+
     private void Start()
     {
-        // Cache the PlayerActions component attached to this GameObject
         _playerActions = GetComponent<PlayerActions>();
+        SpriteRenderer sr = weapon.GetComponent<SpriteRenderer>();
+        if (sr != null) sr.enabled = false;
+
+        GameObject dirObj = new GameObject("DirIndicator", typeof(TextMeshPro));
+        dirObj.transform.SetParent(weapon.transform, false);
+        dirObj.transform.localPosition = Vector3.zero;
+        TextMeshPro tmp = dirObj.GetComponent<TextMeshPro>();
+        tmp.fontSize = 3;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = Color.white;
+        tmp.text = ">";
     }
 
-    // Update is called once per frame
     private void Update() {
-        // Only allow weapon aiming if the game is currently in a match
         if (GameState.Instance.gameState != GameState.GameStateEnum.InMatch) return;
-        
-        // Get raw input values (-1, 0, or 1) using the player's specific control axis
-        int horizontal = (int) Input.GetAxisRaw(GameState.Instance.horizontalAxis + _playerActions.playerCount);
-        int vertical = (int) Input.GetAxisRaw(GameState.Instance.verticalAxis + _playerActions.playerCount);
-            
-        // Determine weapon positioning and aiming direction based on input values
-        switch (horizontal) {
-            // No horizontal input and no vertical input (idle/neutral)
-            case 0 when vertical == 0: {
-                break;   
-            }
-            // Aiming straight up
-            case 1 when vertical == 1:
-                {
-                    weapon.transform.position = positionTop.position;
-                    direction = Vector2.up;
-                    break;
-                }
-            // Aiming straight up
-            case 0 when vertical == 1:{
-                weapon.transform.position = positionTop.position;
-                direction = Vector2.up;
-                break;   
-            }
-            // Aiming straight down
-            case 0 when vertical == -1:{
-                weapon.transform.position = positionBottom.position;
-                direction = Vector2.down;
-                break;   
-            }
-            // Aiming straight right
-            case 1 when vertical == 0:{
-                weapon.transform.position = positionRight.position;
-                direction = Vector2.right;
-                break;   
-            }
-            // Aiming straight left
-            case -1 when vertical == 0:{
-                weapon.transform.position = positionLeft.position;
-                direction = Vector2.left;
-                break;   
+
+        float h = Input.GetAxisRaw(GameState.Instance.horizontalAxis + _playerActions.playerCount);
+        float v = Input.GetAxisRaw(GameState.Instance.verticalAxis + _playerActions.playerCount);
+
+        Vector2 inputDir = new Vector2(h, v);
+        if (inputDir.magnitude > 0.2f)
+        {
+            direction = inputDir.normalized;
+            weapon.transform.position = (Vector2)transform.position + direction * aimDistance;
+
+            TextMeshPro tmp = weapon.GetComponentInChildren<TextMeshPro>();
+            if (tmp != null)
+            {
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                tmp.transform.rotation = Quaternion.Euler(0, 0, angle);
             }
         }
     }

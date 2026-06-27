@@ -88,4 +88,19 @@ public class PlayerActions : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D collision) {
     }
+
+    public void ResetToStart()
+    {
+        transform.position = _start;
+        if (_rigidbody != null)
+            _rigidbody.velocity = Vector2.zero;
+        if (_playerWeapon != null)
+        {
+            _playerWeapon.direction = Vector2.right;
+            if (_playerWeapon.positionRight != null)
+                _playerWeapon.weapon.transform.position = _playerWeapon.positionRight.position;
+        }
+        _canShoot = true;
+        currentTime = 0f;
+    }
 }

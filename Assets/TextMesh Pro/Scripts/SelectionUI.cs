@@ -114,7 +114,7 @@ public class SelectionUI : MonoBehaviour
         if (gunSprites == null || gunSprites.Length == 0)
         {
             gunSprites = new Sprite[_gunNames.Length];
-            Sprite gun = Resources.Load<Sprite>("pixil-frame-0 (2)_0");
+            Sprite gun = Resources.Load<Sprite>("gun");
             if (gun != null)
                 gunSprites[0] = gun;
             Sprite sickle = Resources.Load<Sprite>("The-Sickle");

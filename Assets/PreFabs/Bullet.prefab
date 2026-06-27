@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1462877666963629811}
   - component: {fileID: 4082970702878896734}
   - component: {fileID: 5786989302846459640}
+  - component: {fileID: 3049685718427660211}
   m_Layer: 0
   m_Name: Bullet
   m_TagString: Death
@@ -109,6 +110,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d22d5dc107afa764faf41940b30160ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  delayBeforeShrink: 2
+  shrinkDuration: 1
+  speed: 5
+  shooterId: 
+  damage: 10
+--- !u!95 &3049685718427660211
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1152007818261404469}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 7f13cd85bfb4cd546b37aa7ba1edd456, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &4082393491137635609
 GameObject:
   m_ObjectHideFlags: 0
@@ -182,7 +209,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3f9a11f1bbc035144ad4ffccc6183ce2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
